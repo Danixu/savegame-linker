@@ -22,41 +22,34 @@ class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
     CheckListCtrlMixin.__init__(self)
     ListCtrlAutoWidthMixin.__init__(self)
 
-    
 
-#====================================================================
-class MainFrame(wx.Frame):
-  def __init__(self, *args, **kwargs):
-    wx.Frame.__init__(self, *args, **kwargs)
-
-    icon = wx.Icon("icons.ico", wx.BITMAP_TYPE_ICO)
-    self.SetIcon(icon)
-    
-    self.createWidgets()
-    self.createButtons()
-    self.Show()
-
-    
-  #----------------------------------------------------------
+class mainWindow(wx.Frame):
+  ###=== Exit Function ===###
   def exitGUI(self, event):
     self.Destroy()
 
-  #----------------------------------------------------------
-  def createWidgets(self):
-    self.CreateStatusBar()
-    self.createMenu()
+  ###=== Main Function ===###
+  def __init__(self):
+    wx.Frame.__init__(
+        self, 
+        None, 
+        style = wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX, 
+        title="Savegame Linker", 
+        size=(485,587)
+      )
+
+    # Changing the icon
+    icon = wx.Icon("icons.ico", wx.BITMAP_TYPE_ICO)
+    self.SetIcon(icon)
     
-    # Creamos el panel
-    boxSizer = wx.BoxSizer()
-    
+    # Creating panel
+    boxSizer = wx.BoxSizer()  
     self.panel = wx.Panel(self)
     self.panel.SetBackgroundColour(globals.BACKGROUNDCOLOR)
     self.panel.SetSizerAndFit(boxSizer)
-     
-#    staticBox = wx.StaticBox( self.panel, -1, "Listado de Saves", size=(414, 500),
- #             pos=wx.Point(4, 0) )   
-    
-    # Lista de items
+ 
+ 
+    # Widget items list
     self.itemList = CheckListCtrl(self.panel)
     self.itemList.InsertColumn(0, '', width=32)
     self.itemList.InsertColumn(1, 'Icono', width=52)
@@ -85,54 +78,10 @@ class MainFrame(wx.Frame):
     for item in range(0, 200):
       index = self.itemList.InsertItem(sys.maxsize, "")
       self.itemList.SetItemColumnImage(item, 1, 3)
-    #self.itemList.Append("Prueba")
-    
-
-  #----------------------------------------------------------
-  def createButtons(self):
-    def AddButtonClick(event):
-      print("AddButtonClick OnLeftDown")
-
-      AddGame = addGame(self)
-      AddGame.ShowModal()
-
-      print("despues de spawn")
-      event.Skip()
-      
-      
-    def RemButtonClick(event):
-      print("RemButtonClick OnLeftDown")
-      
-      toRemove = []
-      
-      for index in range(self.itemList.GetItemCount()): 
-        if self.itemList.IsChecked(index):
-          toRemove.append(index)
-      
-      if len(toRemove) == 0:
-        wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
-        return
-      else:
-        dlg = wx.MessageDialog(None, "¿Seguro que deseas borrar los items?",
-            'Borrar', wx.YES_NO | wx.ICON_QUESTION)
-        result = dlg.ShowModal()
-         
-        if result == wx.ID_YES:
-          for item in reversed(toRemove):
-            self.itemList.DeleteItem(item)
-
-
-    def RefreshButtonClick(event):
-      print("RemButtonClick OnLeftDown")
-      event.Skip()
 
       
-    def RunButtonClick(event):
-      print("RunButtonClick OnLeftDown")
-      event.Skip()
-      
-
-    ### Add Button ###
+    #=== Buttons ===#  
+    # Add #
     image_addup = wx.Image(str(globals.dataFolder["images"] / 'add_up.png'),
         wx.BITMAP_TYPE_ANY )
     image_adddown = wx.Image(str(globals.dataFolder["images"] / 'add_down.png'),
@@ -142,13 +91,11 @@ class MainFrame(wx.Frame):
         image_addup.ConvertToBitmap(), 
         image_adddown.ConvertToBitmap(), 
         image_adddisabled.ConvertToBitmap(),
-        pos=(427, 20), size=(36,36),
-        audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+        pos=(427, 20), size=(36,36)
       )
-    button_add.Bind(wx.EVT_LEFT_DOWN, AddButtonClick)
+    button_add.Bind(wx.EVT_LEFT_DOWN, self.AddButtonClick)
     
-    ### Remove Button ###
+    # Remove #
     image_remup = wx.Image(str(globals.dataFolder["images"] / 'remove_up.png'),
         wx.BITMAP_TYPE_ANY )
     image_remdown = wx.Image(str(globals.dataFolder["images"] / 'remove_down.png'),
@@ -158,13 +105,11 @@ class MainFrame(wx.Frame):
         image_remup.ConvertToBitmap(), 
         image_remdown.ConvertToBitmap(), 
         image_remdisabled.ConvertToBitmap(),
-        pos=(427, 65), size=(36,36),
-        audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+        pos=(427, 65), size=(36,36)
       )
-    button_rem.Bind(wx.EVT_LEFT_DOWN, RemButtonClick)
+    button_rem.Bind(wx.EVT_LEFT_DOWN, self.RemButtonClick)
     
-    ### Refresh Button ###
+    # Refresh #
     image_refup = wx.Image(str(globals.dataFolder["images"] / 'refresh_up.png'),
         wx.BITMAP_TYPE_ANY )
     image_refdown = wx.Image(str(globals.dataFolder["images"] / 'refresh_down.png'),
@@ -174,13 +119,11 @@ class MainFrame(wx.Frame):
         image_refup.ConvertToBitmap(), 
         image_refdown.ConvertToBitmap(), 
         image_refdisabled.ConvertToBitmap(),
-        pos=(427, 110), size=(36,36),
-        audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+        pos=(427, 110), size=(36,36)
       )
-    button_ref.Bind(wx.EVT_LEFT_DOWN, RefreshButtonClick)
+    button_ref.Bind(wx.EVT_LEFT_DOWN, self.RefreshButtonClick)
     
-    ### Run Button ###
+    # Run #
     image_runup = wx.Image(str(globals.dataFolder["images"] / 'run_up.png'),
         wx.BITMAP_TYPE_ANY )
     image_rundown = wx.Image(str(globals.dataFolder["images"] / 'run_down.png'),
@@ -190,16 +133,13 @@ class MainFrame(wx.Frame):
         image_runup.ConvertToBitmap(), 
         image_rundown.ConvertToBitmap(), 
         image_rundisabled.ConvertToBitmap(),
-        pos=(427, 450), size=(36,36),
-        audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+        pos=(427, 450), size=(36,36)
       )
-    button_run.Bind(wx.EVT_LEFT_DOWN, RunButtonClick)
-    
-  
-  #----------------------------------------------------------
-  def createMenu(self):
-    # Menú Archivo
+    button_run.Bind(wx.EVT_LEFT_DOWN, self.RunButtonClick)  
+
+    #=== Menu ===#
+    self.CreateStatusBar()
+    # Menu File
     APP_EXIT = 1
     mArchivo = wx.Menu()
     qmi = wx.MenuItem(mArchivo, APP_EXIT, '&Salir\tCtrl+Q')
@@ -209,18 +149,61 @@ class MainFrame(wx.Frame):
     mArchivo.Append(qmi)
     self.Bind(wx.EVT_MENU, self.exitGUI, id=APP_EXIT)
     
-    # Barra de menús
+    # Menu bar
     menuBar = wx.MenuBar()
-    
     menuBar.Append(mArchivo, "&Archivo")
-    
-    # Seteamos la barra de menús
     self.SetMenuBar(menuBar)
+   
+  
+  ###=== Button "Add" click ===###
+  def AddButtonClick(self, event):
+    print("AddButtonClick OnLeftDown")
 
+    AddGame = addGame(self)
+    AddGame.ShowModal()
+
+    print("despues de spawn")
+    event.Skip()
     
+  
+  ###=== Button "Remove" click ===###
+  def RemButtonClick(self, event):
+    print("RemButtonClick OnLeftDown")
+    
+    toRemove = []
+    
+    for index in range(self.itemList.GetItemCount()): 
+      if self.itemList.IsChecked(index):
+        toRemove.append(index)
+    
+    if len(toRemove) == 0:
+      wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
+      return
+    else:
+      dlg = wx.MessageDialog(self, "¿Seguro que deseas borrar los items seleccionados?",
+          'Borrar', wx.YES_NO | wx.ICON_QUESTION)
+      result = dlg.ShowModal()
+       
+      if result == wx.ID_YES:
+        for item in reversed(toRemove):
+          self.itemList.DeleteItem(item)
+
+          
+  ###=== Button "Refresh" click ===###
+  def RefreshButtonClick(self, event):
+    print("RemButtonClick OnLeftDown")
+    event.Skip()
+
+  
+  ###=== Button "Run" click ===###  
+  def RunButtonClick(self, event):
+    print("RunButtonClick OnLeftDown")
+    event.Skip()
+
+ 
 #======================
 # Start GUI
 #======================
 app = wx.App()
-MainFrame(None, style= wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX, title="Savegame Linker", size=(485,587))
+mainWindow().Show()
 app.MainLoop()

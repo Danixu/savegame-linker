@@ -21,6 +21,11 @@ class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
 
 #====================================================================
 class addGame(wx.Dialog):
+  ############# Funciones #############
+  ## Función de salida ##
+  def exitGUI(self, event):
+    self.Destroy()
+
   def __init__(self, parent):
     wx.Dialog.__init__(
         self, 
@@ -32,8 +37,6 @@ class addGame(wx.Dialog):
     
     # Varaibles del objeto
     self.exit_code = 0
-    
-    print(globals.dataFolder)
     
     # Cambiamos el icono
     icon = wx.Icon("icons.ico", wx.BITMAP_TYPE_ICO)
@@ -49,32 +52,30 @@ class addGame(wx.Dialog):
     # Creamos el Notebook con las páginas
     self.notebook = wx.Notebook(self.panel)
    
-    searchpage = self._searchPage(self.notebook)
+    searchpage = self._searchPage(self.notebook, self)
     self.notebook.AddPage(searchpage, "Buscar Juegos")
 
-    addpage = self._addPage(self.notebook)
+    addpage = self._addPage(self.notebook, self)
     self.notebook.AddPage(addpage, "Añadir manualmente")
 
     # layout
     boxSizer = wx.BoxSizer()
     boxSizer.Add(self.notebook, 1, wx.EXPAND)
     self.panel.SetSizerAndFit(boxSizer)
-    
+
 
   ### Página de Búsqueda ###
   class _searchPage(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, mainWindow):
       wx.Panel.__init__(self, parent)
       t = wx.StaticText(self, -1, "This is a PageTwo object", (20,20))
-      
-      print("lala")
-      print(globals.dataFolder)
-  
 
   ### Página para añadir manualmente ###
   class _addPage(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, mainWindow):
       wx.Panel.__init__(self, parent)
+      
+      self.mainWindow = mainWindow
       
       # Formatos
       labelFormat = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_SLANT,
@@ -121,9 +122,7 @@ class addGame(wx.Dialog):
           image_icondown.ConvertToBitmap(), 
           image_icondisabled.ConvertToBitmap(),
           image_iconover.ConvertToBitmap(),
-          pos=(423, 55), size=(36,36),
-          audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-          audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+          pos=(423, 55), size=(36,36)
         )
       button_icon.Bind(wx.EVT_LEFT_DOWN, self.SelectIconButton)
 
@@ -148,9 +147,7 @@ class addGame(wx.Dialog):
           image_addup.ConvertToBitmap(), 
           image_adddown.ConvertToBitmap(), 
           image_adddisabled.ConvertToBitmap(),
-          pos=(422, 108), size=(36,36),
-          audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-          audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+          pos=(422, 108), size=(36,36)
         )
       button_add.Bind(wx.EVT_LEFT_DOWN, self.AddButtonClick)
       
@@ -164,9 +161,7 @@ class addGame(wx.Dialog):
           image_remup.ConvertToBitmap(), 
           image_remdown.ConvertToBitmap(), 
           image_remdisabled.ConvertToBitmap(),
-          pos=(422, 150), size=(36,36),
-          audio_enter=str(globals.dataFolder["audio"] / 'High1.ogg'),
-          audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg')
+          pos=(422, 150), size=(36,36)
         )
       button_rem.Bind(wx.EVT_LEFT_DOWN, self.RemButtonClick)
       
@@ -199,31 +194,22 @@ class addGame(wx.Dialog):
       self.btnCancelar = wx.Button(self, -1, "Cancelar",
           pos=(236, 410), size=(80,30)
         )
-      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.exitGUI)
-      
-    
-    
-    ############# Funciones #############
-    ## Función de salida ##
-    def exitGUI(event):
-      self.Destroy()
-    
+      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)    
     
     ## Funcíón seleccionar icono ##
     def SelectIconButton(self, event):
-      event.Skip()
-      
       with wx.FileDialog(self, "Abrir Imagen", wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
         if fileDialog.ShowModal() == wx.ID_CANCEL:
-            return
+          event.Skip()
+          return
 
         self.textBox2.SetValue(fileDialog.GetPath())
     
+      event.Skip()
+    
     ## Función añadir carpeta ##
     def AddButtonClick(self, event):
-      event.Skip()
-
       while True:
         with wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
           if folderDialog.ShowModal() == wx.ID_OK:
@@ -239,12 +225,11 @@ class addGame(wx.Dialog):
               wx.MessageBox('La carpeta seleccionada ya está en la lista', 'Aviso', wx.OK | wx.ICON_WARNING)
           else:
             break
-      return
+            
+      event.Skip()
     
     ## Función quitar carpeta ##
     def RemButtonClick(self, event):
-      event.Skip()
-      
       selected = self.folderList.GetSelectedItemCount()
       if selected == 0:
         wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
@@ -262,7 +247,8 @@ class addGame(wx.Dialog):
         
         for item in reversed(item_list):
           self.folderList.DeleteItem(item)
-      pass
+          
+      event.Skip()
       
     def get_list_data(self):
       count = self.folderList.GetItemCount()
@@ -270,16 +256,3 @@ class addGame(wx.Dialog):
       for row in range(count):
         itemlist.append(self.folderList.GetItem(itemIdx=row, col=0).Text)
       return itemlist
-
-
-#======================
-# Start GUI
-#======================
-#app = wx.App()
-
-#dataFolder = {
-#  "images": Path("images/"),
-#  "audio": Path("audio/"),
-#}
-#MainFrame(dataFolder).Show()
-#app.MainLoop()
