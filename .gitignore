@@ -1,6 +1,8 @@
 *.txt
 test*
 **/test*
+savedata.db
+icons/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

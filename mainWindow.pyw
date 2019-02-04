@@ -11,9 +11,7 @@ from addGame import addGame
 import sys
 from pathlib import Path
 
-
 globals.init()
-
 
 class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
   def __init__(self, parent):
@@ -48,7 +46,6 @@ class mainWindow(wx.Frame):
     self.panel.SetBackgroundColour(globals.BACKGROUNDCOLOR)
     self.panel.SetSizerAndFit(boxSizer)
  
- 
     # Widget items list
     self.itemList = CheckListCtrl(self.panel)
     self.itemList.InsertColumn(0, '', width=32)
@@ -73,11 +70,10 @@ class mainWindow(wx.Frame):
     image = image.Scale(40, 40, wx.IMAGE_QUALITY_HIGH)
     image.ConvertAlphaToMask(threshold=50)
     image = image.Size(wx.Size(48,48), wx.Point(4,4), 255, 255, 255)
-    self.il.Add(image.ConvertToBitmap())
+    self.il.Add(image.ConvertToBitmap())  
     
-    for item in range(0, 200):
-      index = self.itemList.InsertItem(sys.maxsize, "")
-      self.itemList.SetItemColumnImage(item, 1, 3)
+    self.itemListRefresh()
+    self.itemListRefresh()
 
       
     #=== Buttons ===#  
@@ -199,6 +195,26 @@ class mainWindow(wx.Frame):
   def RunButtonClick(self, event):
     print("RunButtonClick OnLeftDown")
     event.Skip()
+    
+    
+  ###=== Refresh List ===###
+  def itemListRefresh(self):
+    self.itemList.DeleteAllItems()
+    c = globals.db_savedata.cursor()
+    c.execute("SELECT * FROM Games ORDER BY name;")
+    for campo in c:
+      image = wx.Image( str(globals.dataFolder["icons"] / campo[4]), wx.BITMAP_TYPE_ANY )
+      #image = image.Blur(1)
+      image = image.Scale(44, 44, wx.IMAGE_QUALITY_HIGH)
+      image.ConvertAlphaToMask(threshold=1)
+      image = image.Size(wx.Size(48,48), wx.Point(2,2), 255, 255, 255)
+      
+      self.il.Add(image.ConvertToBitmap())
+    
+      index = self.itemList.InsertItem(sys.maxsize, "")
+      self.itemList.SetItemColumnImage(index, 1, self.il.GetImageCount()-1)
+      self.itemList.SetItem(index, 2, campo[2])
+      self.itemList.SetItemData(index, campo[0])
 
  
 #======================

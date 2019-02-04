@@ -25,6 +25,9 @@ class addGame(wx.Dialog):
   ## Función de salida ##
   def exitGUI(self, event):
     self.Destroy()
+  
+  def __del__(self):
+    print("addGame deleted")
 
   def __init__(self, parent):
     wx.Dialog.__init__(
@@ -34,6 +37,11 @@ class addGame(wx.Dialog):
         title="Añadir juego", 
         size=(485,520)
       )
+    
+    # Binding close button to avoid memory leak
+    # If not, when close button is pressed instead cancel, it keeps the memory
+    # in use
+    self.Bind(wx.EVT_CLOSE, self.exitGUI)
     
     # Varaibles del objeto
     self.exit_code = 0
