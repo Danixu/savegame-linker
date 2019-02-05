@@ -10,6 +10,7 @@ import sys
 import os
 from pathlib import Path
 import globals
+import logging
 
 
 class CheckListCtrl(wx.ListCtrl, CheckListCtrlMixin, ListCtrlAutoWidthMixin):
