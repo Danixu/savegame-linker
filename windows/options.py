@@ -1,12 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
 
 '''
-23 June 2018
+6 Feb 2019
 @autor: Daniel Carrasco
 '''
 
 import wx
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 from widgets.ShapedButton import ShapedButton
 import sys
 import os
@@ -15,21 +14,18 @@ import globals
 import logging
 
 #====================================================================
-class addGame(wx.Dialog):
+class options(wx.Dialog):
   ############# Funciones #############
   ## Función de salida ##
   def exitGUI(self, event):
     self.Destroy()
-  
-  def __del__(self):
-    print("addGame deleted")
 
   def __init__(self, parent):
     wx.Dialog.__init__(
         self, 
         parent, 
         style = wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.FRAME_FLOAT_ON_PARENT, 
-        title="Añadir juego", 
+        title="Opciones", 
         size=(485,520)
       )
     
@@ -42,7 +38,7 @@ class addGame(wx.Dialog):
     self.exit_code = 0
     
     # Cambiamos el icono
-    icon = wx.Icon(str(globals.dataFolder["images"] / 'icons.ico'), wx.BITMAP_TYPE_ICO)
+    icon = wx.Icon(str(globals.dataFolder["images"] / 'options.ico'), wx.BITMAP_TYPE_ICO)
     self.SetIcon(icon)
     
     # Creamos el panel
@@ -55,11 +51,11 @@ class addGame(wx.Dialog):
     # Creamos el Notebook con las páginas
     self.notebook = wx.Notebook(self.panel)
    
-    searchpage = self._searchPage(self.notebook, self)
-    self.notebook.AddPage(searchpage, "Buscar Juegos")
+    searchpage = self._global(self.notebook, self)
+    self.notebook.AddPage(searchpage, "Globales")
 
-    addpage = self._addPage(self.notebook, self)
-    self.notebook.AddPage(addpage, "Añadir manualmente")
+    addpage = self._logging(self.notebook, self)
+    self.notebook.AddPage(addpage, "Logging")
 
     # layout
     boxSizer = wx.BoxSizer()
@@ -68,10 +64,10 @@ class addGame(wx.Dialog):
 
 
   ### Página de Búsqueda ###
-  class _searchPage(wx.Panel):
+  class _global(wx.Panel):
     def __init__(self, parent, mainWindow):
       wx.Panel.__init__(self, parent)
-      t = wx.StaticText(self, -1, "This is a PageTwo object", (20,20))
+      t = wx.StaticText(self, -1, "There are no global options for now", (20,20))
       
       self.mainWindow = mainWindow
 
@@ -86,36 +82,24 @@ class addGame(wx.Dialog):
       self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)
 
   ### Página para añadir manualmente ###
-  class _addPage(wx.Panel):
+  class _logging(wx.Panel):
     def __init__(self, parent, mainWindow):
       wx.Panel.__init__(self, parent)
-      
+
       self.mainWindow = mainWindow
-  
-      ### Grupo Título ###
-      text1 = wx.StaticText(self, id=wx.ID_ANY, label="Título:",
+
+      ## Log search Button ###
+      text2 = wx.StaticText(self, id=wx.ID_ANY, label="Archivo log:",
           pos=(6, 5), size=wx.DefaultSize, style=0,
-          name=wx.StaticTextNameStr)
-      text1.SetFont(globals.labelFormat)
-      text1.SetForegroundColour(wx.Colour(0, 51, 153))
-      
-      self.textBox1 = wx.TextCtrl(self, -1, "", (6, 23), (450, 20),
-          wx.BORDER_STATIC|wx.TE_LEFT)
-      self.textBox1.SetFont(globals.textBoxFormat)
-      
-      ### Grupo Icono ###
-      text2 = wx.StaticText(self, id=wx.ID_ANY, label="Icono:",
-          pos=(6, 47), size=wx.DefaultSize, style=0,
           name=wx.StaticTextNameStr)
       text2.SetFont(globals.labelFormat)
       text2.SetForegroundColour(wx.Colour(0, 51, 153))
       
-      self.textBox2 = wx.TextCtrl(self, -1, "", (6, 67), (410, 20),
+      self.textBox2 = wx.TextCtrl(self, -1, "", (6, 23), (410, 20),
           wx.BORDER_STATIC | wx.TE_LEFT | wx.TE_READONLY)
       self.textBox2.SetFont(globals.textBoxFormat)
       self.textBox2.SetBackgroundColour(wx.WHITE)
-      
-      ## Add Button ###
+
       image_iconup = wx.Image(str(globals.dataFolder["images"] / 'folder_close.png'),
           wx.BITMAP_TYPE_ANY )
       image_iconover = wx.Image(str(globals.dataFolder["images"] / 'folder_open.png'),
@@ -128,71 +112,46 @@ class addGame(wx.Dialog):
           image_icondown.ConvertToBitmap(), 
           image_icondisabled.ConvertToBitmap(),
           image_iconover.ConvertToBitmap(),
-          pos=(423, 55), size=(36,36)
+          pos=(423, 14), size=(36,36)
         )
-      button_icon.Bind(wx.EVT_LEFT_DOWN, self.SelectIconButton)
+      button_icon.Bind(wx.EVT_LEFT_DOWN, self.SelectLogButton)
 
-      ### Grupo Folder List ###
-      text2 = wx.StaticText(self, id=wx.ID_ANY, label="Carpetas a añadir:",
-          pos=(6, 90), size=wx.DefaultSize, style=0,
+      
+      ## Log Level selector ##
+      text1 = wx.StaticText(self, id=wx.ID_ANY, label="Nivel de log:",
+          pos=(6, 47), size=wx.DefaultSize, style=0,
           name=wx.StaticTextNameStr)
-      text2.SetFont(globals.labelFormat)
-      text2.SetForegroundColour(wx.Colour(0, 51, 153))
-      self.folderList = wx.ListCtrl(self, id=wx.ID_ANY, pos=(6, 108), size=(410,200),
-          style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, validator=wx.DefaultValidator, name=wx.ListCtrlNameStr)
-      self.folderList.InsertColumn(0, '', width=wx.LIST_AUTOSIZE_USEHEADER)
-       
-       
-      ### Add Button ###
-      image_addup = wx.Image(str(globals.dataFolder["images"] / 'add_up.png'),
-          wx.BITMAP_TYPE_ANY )
-      image_adddown = wx.Image(str(globals.dataFolder["images"] / 'add_down.png'),
-          wx.BITMAP_TYPE_ANY )
-      image_adddisabled = image_addup.ConvertToDisabled(70)
-      button_add = ShapedButton(self, 
-          image_addup.ConvertToBitmap(), 
-          image_adddown.ConvertToBitmap(), 
-          image_adddisabled.ConvertToBitmap(),
-          pos=(422, 108), size=(36,36)
-        )
-      button_add.Bind(wx.EVT_LEFT_DOWN, self.AddButtonClick)
+      text1.SetFont(globals.labelFormat)
+      text1.SetForegroundColour(wx.Colour(0, 51, 153))
       
-      ### Remove Button ###
-      image_remup = wx.Image(str(globals.dataFolder["images"] / 'remove_up.png'),
-          wx.BITMAP_TYPE_ANY )
-      image_remdown = wx.Image(str(globals.dataFolder["images"] / 'remove_down.png'),
-          wx.BITMAP_TYPE_ANY )
-      image_remdisabled = image_remup.ConvertToDisabled(70)
-      button_rem = ShapedButton(self, 
-          image_remup.ConvertToBitmap(), 
-          image_remdown.ConvertToBitmap(), 
-          image_remdisabled.ConvertToBitmap(),
-          pos=(422, 150), size=(36,36)
-        )
-      button_rem.Bind(wx.EVT_LEFT_DOWN, self.RemButtonClick)
-      
-      
-      ### Grupo nombre de Carpeta ###
-      text4 = wx.StaticText(self, id=wx.ID_ANY, label="Nombre de carpeta donde guardar:",
-          pos=(6, 315), size=wx.DefaultSize, style=0,
-          name=wx.StaticTextNameStr)
-      text4.SetFont(globals.labelFormat)
-      text4.SetForegroundColour(wx.Colour(0, 51, 153))
-      
-      self.textBox3 = wx.TextCtrl(self, -1, "", (6, 333), (450, 20),
-          wx.BORDER_STATIC|wx.TE_LEFT)
-      self.textBox3.SetFont(globals.textBoxFormat)
-      
-      
-      ### Grupo Checkbox ###
-      check1 = wx.CheckBox(self, id=wx.ID_ANY, label="Mover ficheros a la carpeta de backups",
-          pos=(6, 360), size=(250,20))
-          
-      check2 = wx.CheckBox(self, id=wx.ID_ANY, label="Generar enlace simbólico después de mover",
-          pos=(6, 380), size=(250,20)
+      logLevel = wx.ComboBox(
+          self, id=wx.ID_ANY, value="",
+          pos=(6, 67), size=(450, 30), style=wx.CB_DROPDOWN | wx.CB_READONLY,
+          choices=[
+            "CRITICAL",
+            "ERROR",
+            "WARNING",
+            "INFO",
+            "DEBUG",
+            ],
+          validator=wx.DefaultValidator, name="LogLevel"
         )
       
       
+      # Set values on widgets
+      self.textBox2.SetValue(globals.options['logFile'])
+      
+      found = logLevel.FindString(
+          globals.valueToStr(
+              globals.options['logLevel'],
+              "logLevel"
+          )
+        )
+        
+      logLevel.SetSelection(found)
+      
+      
+      # Accept/Cancel buttons
       self.btnAceptar = wx.Button(self, -1, "Aceptar",
           pos=(150, 410), size=(80,30)
         )
@@ -203,8 +162,8 @@ class addGame(wx.Dialog):
       self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)    
     
     ## Funcíón seleccionar icono ##
-    def SelectIconButton(self, event):
-      with wx.FileDialog(self, "Abrir Imagen", wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
+    def SelectLogButton(self, event):
+      with wx.FileDialog(self, "Abrir Imagen", wildcard="Ficheros de log|*.log",
           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
         if fileDialog.ShowModal() == wx.ID_CANCEL:
           event.Skip()

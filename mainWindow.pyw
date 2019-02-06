@@ -1,24 +1,32 @@
-﻿'''
+﻿#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+'''
 17 June 2018
 @autor: Daniel Carrasco
 '''
 
+from pathlib import Path
 import globals
-import wx
+import logging
+import sys
 from widgets.CheckListCtrl import CheckListCtrl
 from widgets.ShapedButton import ShapedButton
 from windows.addGame import addGame
-import sys
-from pathlib import Path
-import logging
+from windows.options import options
+import wx
 
+
+# Load main data
+app = wx.App()
+globals.init()
 
 ### Log Configuration ###
 log = logging.getLogger("SavegameLinker")
 log.setLevel(logging.DEBUG)
 
 # create a file handler
-handler = logging.FileHandler('mainWindow.log')
+handler = logging.FileHandler(globals.options['logFile'])
 
 # create a logging format
 formatter = logging.Formatter('%(asctime)s - %(funcName)s() - %(levelname)s: %(message)s')
@@ -27,8 +35,8 @@ handler.setFormatter(formatter)
 # add the handlers to the logger
 log.addHandler(handler)
 
-log.debug("Initializing global data")
-globals.init()
+log.debug("Changing log level to {}".format(globals.options['logLevel']))
+log.setLevel(globals.options['logLevel'])
 
 
 class mainWindow(wx.Frame):
@@ -52,12 +60,12 @@ class mainWindow(wx.Frame):
     self.Bind(wx.EVT_CLOSE, self.exitGUI)
 
     # Changing the icon
-    icon = wx.Icon("icons.ico", wx.BITMAP_TYPE_ICO)
+    icon = wx.Icon(str(globals.dataFolder["images"] / 'icons.ico'), wx.BITMAP_TYPE_ICO)
     self.SetIcon(icon)
     
     # Creating panel
     log.debug("Creating panel")
-    boxSizer = wx.BoxSizer()  
+    boxSizer = wx.BoxSizer()
     self.panel = wx.Panel(self)
     self.panel.SetBackgroundColour(globals.BACKGROUNDCOLOR)
     self.panel.SetSizerAndFit(boxSizer)
@@ -80,9 +88,9 @@ class mainWindow(wx.Frame):
     image_adddown = wx.Image(str(globals.dataFolder["images"] / 'add_down.png'),
         wx.BITMAP_TYPE_ANY )
     image_adddisabled = image_addup.ConvertToDisabled(70)
-    button_add = ShapedButton(self.panel, 
-        image_addup.ConvertToBitmap(), 
-        image_adddown.ConvertToBitmap(), 
+    button_add = ShapedButton(self.panel,
+        image_addup.ConvertToBitmap(),
+        image_adddown.ConvertToBitmap(),
         image_adddisabled.ConvertToBitmap(),
         pos=(427, 20), size=(36,36)
       )
@@ -95,9 +103,9 @@ class mainWindow(wx.Frame):
     image_remdown = wx.Image(str(globals.dataFolder["images"] / 'remove_down.png'),
         wx.BITMAP_TYPE_ANY )
     image_remdisabled = image_remup.ConvertToDisabled(70)
-    button_rem = ShapedButton(self.panel, 
-        image_remup.ConvertToBitmap(), 
-        image_remdown.ConvertToBitmap(), 
+    button_rem = ShapedButton(self.panel,
+        image_remup.ConvertToBitmap(),
+        image_remdown.ConvertToBitmap(),
         image_remdisabled.ConvertToBitmap(),
         pos=(427, 65), size=(36,36)
       )
@@ -110,9 +118,9 @@ class mainWindow(wx.Frame):
     image_refdown = wx.Image(str(globals.dataFolder["images"] / 'refresh_down.png'),
         wx.BITMAP_TYPE_ANY )
     image_refdisabled = image_refup.ConvertToDisabled(70)
-    button_ref = ShapedButton(self.panel, 
-        image_refup.ConvertToBitmap(), 
-        image_refdown.ConvertToBitmap(), 
+    button_ref = ShapedButton(self.panel,
+        image_refup.ConvertToBitmap(),
+        image_refdown.ConvertToBitmap(),
         image_refdisabled.ConvertToBitmap(),
         pos=(427, 110), size=(36,36)
       )
@@ -137,19 +145,28 @@ class mainWindow(wx.Frame):
     log.debug("Creating main menu")
     self.CreateStatusBar()
     # Menu File
-    APP_EXIT = 1
-    mArchivo = wx.Menu()
-    qmi = wx.MenuItem(mArchivo, APP_EXIT, '&Salir\tCtrl+Q')
+    mFile = wx.Menu()
+    qmi = wx.MenuItem(mFile, 10, '&Salir\tCtrl+Q')
     image = wx.Image(str(globals.dataFolder["images"] / 'exit.png'),wx.BITMAP_TYPE_PNG)
     image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
     qmi.SetBitmap(image.ConvertToBitmap())
-    mArchivo.Append(qmi)
-    self.Bind(wx.EVT_MENU, self.exitGUI, id=APP_EXIT)
+    mFile.Append(qmi)
+    self.Bind(wx.EVT_MENU, self.exitGUI, id=10)
+    
+    # Menu Edit
+    mEdit = wx.Menu()
+    qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
+    image = wx.Image(str(globals.dataFolder["images"] / 'options.png'),wx.BITMAP_TYPE_PNG)
+    image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
+    qmi.SetBitmap(image.ConvertToBitmap())
+    mEdit.Append(qmi)
+    self.Bind(wx.EVT_MENU, self.MenuOptions, id=20)
     
     # Menu bar
     log.debug("Adding menu bar")
     menuBar = wx.MenuBar()
-    menuBar.Append(mArchivo, "&Archivo")
+    menuBar.Append(mFile, "&Archivo")
+    menuBar.Append(mEdit, "&Edición")
     self.SetMenuBar(menuBar)
    
   
@@ -256,10 +273,20 @@ class mainWindow(wx.Frame):
       self.itemList.SetItem(index, 2, campo[2])
       self.itemList.SetItemData(index, campo[0])
 
+   ###=== Button "Add" click ===###
+  def MenuOptions(self, event):
+    log.debug("Clicked 'Options' menu")
+
+    Options = options(self)
+    Options.ShowModal()
+
+    print("despues de spawn")
+    event.Skip()
+ 
  
 #======================
 # Start GUI
 #======================
-app = wx.App()
+
 mainWindow().Show()
 app.MainLoop()
