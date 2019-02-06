@@ -4,19 +4,31 @@ from cx_Freeze import setup, Executable
 
 __version__ = "1.0.0"
 
-include_files = ['images/tick_1.png', 'images/tick_2.png', 'images/exit.png', 'images/test.png', 'icons.ico']
-excludes = [""]
-packages = ["wx", "pathlib", "sys"]
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-setup(
-    name = "appname",
-    description='App Description',
-    version=__version__,
-    options = {"build_exe": {
-    'packages': packages,
-    'include_files': include_files,
-    'excludes': excludes,
-    'include_msvcr': True,
-}},
-executables = [Executable("mainWindows.py",base="Win32GUI",icon="icons.ico")]
+include_files = ['images']
+excludes = ["OpenGL", "ctypes", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml"]
+packages = ["widgets", "windows"]
+
+setup (
+  name = "appname",
+  description='App Description',
+  version=__version__,
+  options = {
+    'build_exe': {
+      'include_files': include_files,
+      'excludes': excludes,
+      'include_msvcr': True,
+      'zip_include_packages': packages,
+      'zip_exclude_packages': '',
+      "optimize": 2,
+    }
+  },
+  executables = [
+    Executable(
+      "mainWindow.pyw",
+      base="Win32GUI",
+      icon="images/icons.ico",
+    )
+  ]
 )

@@ -2,7 +2,9 @@
 test*
 **/test*
 savedata.db
+build/
 icons/
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

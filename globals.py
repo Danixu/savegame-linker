@@ -14,7 +14,7 @@ def init():
     dataFolder = {
       "images": Path("images/"),
       "audio": Path("audio/"),
-      "icons": Path("icons/"),
+      "icons": Path("data/icons/"),
     }
     
     # Data from DB
