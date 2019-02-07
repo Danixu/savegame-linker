@@ -79,7 +79,7 @@ class options(wx.Dialog):
       self.btnCancelar = wx.Button(self, -1, "Cancelar",
           pos=(236, 410), size=(80,30)
         )
-      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)
+      self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)
 
   ### Página para añadir manualmente ###
   class _logging(wx.Panel):
@@ -114,7 +114,7 @@ class options(wx.Dialog):
           image_iconover.ConvertToBitmap(),
           pos=(423, 14), size=(36,36)
         )
-      button_icon.Bind(wx.EVT_LEFT_DOWN, self.SelectLogButton)
+      button_icon.Bind(wx.EVT_LEFT_UP, self.SelectLogButton)
 
       
       ## Log Level selector ##
@@ -126,7 +126,8 @@ class options(wx.Dialog):
       
       logLevel = wx.ComboBox(
           self, id=wx.ID_ANY, value="",
-          pos=(6, 67), size=(450, 30), style=wx.CB_DROPDOWN | wx.CB_READONLY,
+          pos=(6, 67), size=(450, 30), 
+          style=wx.CB_DROPDOWN | wx.CB_READONLY,
           choices=[
             "CRITICAL",
             "ERROR",
@@ -134,7 +135,8 @@ class options(wx.Dialog):
             "INFO",
             "DEBUG",
             ],
-          validator=wx.DefaultValidator, name="LogLevel"
+          validator=wx.DefaultValidator, 
+          name="LogLevel"
         )
       
       
@@ -159,7 +161,7 @@ class options(wx.Dialog):
       self.btnCancelar = wx.Button(self, -1, "Cancelar",
           pos=(236, 410), size=(80,30)
         )
-      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)    
+      self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)    
     
     ## Funcíón seleccionar icono ##
     def SelectLogButton(self, event):

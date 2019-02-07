@@ -11,6 +11,7 @@ from widgets.ShapedButton import ShapedButton
 import sys
 import os
 from pathlib import Path
+import subprocess
 import globals
 import logging
 
@@ -83,7 +84,7 @@ class addGame(wx.Dialog):
       self.btnCancelar = wx.Button(self, -1, "Cancelar",
           pos=(236, 410), size=(80,30)
         )
-      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)
+      self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)
 
   ### Página para añadir manualmente ###
   class _addPage(wx.Panel):
@@ -102,7 +103,8 @@ class addGame(wx.Dialog):
       self.textBox1 = wx.TextCtrl(self, -1, "", (6, 23), (450, 20),
           wx.BORDER_STATIC|wx.TE_LEFT)
       self.textBox1.SetFont(globals.textBoxFormat)
-      
+ 
+ 
       ### Grupo Icono ###
       text2 = wx.StaticText(self, id=wx.ID_ANY, label="Icono:",
           pos=(6, 47), size=wx.DefaultSize, style=0,
@@ -114,6 +116,7 @@ class addGame(wx.Dialog):
           wx.BORDER_STATIC | wx.TE_LEFT | wx.TE_READONLY)
       self.textBox2.SetFont(globals.textBoxFormat)
       self.textBox2.SetBackgroundColour(wx.WHITE)
+
       
       ## Add Button ###
       image_iconup = wx.Image(str(globals.dataFolder["images"] / 'folder_close.png'),
@@ -130,16 +133,18 @@ class addGame(wx.Dialog):
           image_iconover.ConvertToBitmap(),
           pos=(423, 55), size=(36,36)
         )
-      button_icon.Bind(wx.EVT_LEFT_DOWN, self.SelectIconButton)
+      button_icon.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
 
+      
       ### Grupo Folder List ###
       text2 = wx.StaticText(self, id=wx.ID_ANY, label="Carpetas a añadir:",
           pos=(6, 90), size=wx.DefaultSize, style=0,
           name=wx.StaticTextNameStr)
       text2.SetFont(globals.labelFormat)
       text2.SetForegroundColour(wx.Colour(0, 51, 153))
-      self.folderList = wx.ListCtrl(self, id=wx.ID_ANY, pos=(6, 108), size=(410,200),
-          style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, validator=wx.DefaultValidator, name=wx.ListCtrlNameStr)
+      self.folderList = wx.ListCtrl(self, id=wx.ID_ANY, pos=(6, 108), 
+          size=(410,200), style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, 
+          validator=wx.DefaultValidator, name=wx.ListCtrlNameStr)
       self.folderList.InsertColumn(0, '', width=wx.LIST_AUTOSIZE_USEHEADER)
        
        
@@ -155,7 +160,8 @@ class addGame(wx.Dialog):
           image_adddisabled.ConvertToBitmap(),
           pos=(422, 108), size=(36,36)
         )
-      button_add.Bind(wx.EVT_LEFT_DOWN, self.AddButtonClick)
+      button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
+
       
       ### Remove Button ###
       image_remup = wx.Image(str(globals.dataFolder["images"] / 'remove_up.png'),
@@ -169,11 +175,12 @@ class addGame(wx.Dialog):
           image_remdisabled.ConvertToBitmap(),
           pos=(422, 150), size=(36,36)
         )
-      button_rem.Bind(wx.EVT_LEFT_DOWN, self.RemButtonClick)
+      button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
       
       
       ### Grupo nombre de Carpeta ###
-      text4 = wx.StaticText(self, id=wx.ID_ANY, label="Nombre de carpeta donde guardar:",
+      text4 = wx.StaticText(self, id=wx.ID_ANY, 
+          label="Nombre de carpeta donde guardar:",
           pos=(6, 315), size=wx.DefaultSize, style=0,
           name=wx.StaticTextNameStr)
       text4.SetFont(globals.labelFormat)
@@ -185,60 +192,72 @@ class addGame(wx.Dialog):
       
       
       ### Grupo Checkbox ###
-      check1 = wx.CheckBox(self, id=wx.ID_ANY, label="Mover ficheros a la carpeta de backups",
-          pos=(6, 360), size=(250,20))
+      self.check1 = wx.CheckBox(
+          self, id=wx.ID_ANY, 
+          label="Mover ficheros a la carpeta del programa",
+          pos=(6, 360), size=(250,20)
+        )
           
-      check2 = wx.CheckBox(self, id=wx.ID_ANY, label="Generar enlace simbólico después de mover",
+      self.check2 = wx.CheckBox(
+          self, id=wx.ID_ANY, 
+          label="Generar enlace simbólico después de mover",
           pos=(6, 380), size=(250,20)
         )
-      
-      
+
       self.btnAceptar = wx.Button(self, -1, "Aceptar",
           pos=(150, 410), size=(80,30)
         )
+      self.btnAceptar.Bind(wx.EVT_LEFT_UP, self.addGameToDB)
         
       self.btnCancelar = wx.Button(self, -1, "Cancelar",
           pos=(236, 410), size=(80,30)
         )
-      self.btnCancelar.Bind(wx.EVT_LEFT_DOWN, self.mainWindow.exitGUI)    
+      self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)    
     
     ## Funcíón seleccionar icono ##
     def SelectIconButton(self, event):
-      with wx.FileDialog(self, "Abrir Imagen", wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
+      with wx.FileDialog(self, "Abrir Imagen", 
+          wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
           style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
         if fileDialog.ShowModal() == wx.ID_CANCEL:
           event.Skip()
           return
 
         self.textBox2.SetValue(fileDialog.GetPath())
-    
       event.Skip()
     
     ## Función añadir carpeta ##
     def AddButtonClick(self, event):
       while True:
-        with wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
+        with wx.DirDialog(None, "Choose a directory:",
+            style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
           if folderDialog.ShowModal() == wx.ID_OK:
             if folderDialog.GetPath() not in self.get_list_data():
               self.folderList.InsertItem(sys.maxsize, folderDialog.GetPath())
               
-              if self.textBox1.GetLineText(0) == "" and self.textBox1.GetLineText(0) == "":
+              if (self.textBox1.GetLineText(0) == "" 
+                  and self.textBox1.GetLineText(0) == ""):
                 fdname = os.path.basename(folderDialog.GetPath())
                 self.textBox1.SetValue(fdname)
                 self.textBox3.SetValue(fdname)
               break
             else:
-              wx.MessageBox('La carpeta seleccionada ya está en la lista', 'Aviso', wx.OK | wx.ICON_WARNING)
+              wx.MessageBox(
+                  'La carpeta seleccionada ya está en la lista', 
+                  'Aviso', wx.OK | wx.ICON_WARNING
+                )
           else:
             break
-            
       event.Skip()
     
     ## Función quitar carpeta ##
     def RemButtonClick(self, event):
       selected = self.folderList.GetSelectedItemCount()
       if selected == 0:
-        wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
+        wx.MessageBox(
+            'Tienes que seleccionar al menos un item de la lista.', 
+            'Aviso', wx.OK | wx.ICON_WARNING
+          )
         return
       else:
         item_list = []
@@ -253,7 +272,66 @@ class addGame(wx.Dialog):
         
         for item in reversed(item_list):
           self.folderList.DeleteItem(item)
+      event.Skip()
+      
+    def addGameToDB(self, event):
+      # Recuperamos los datos
+      title = self.textBox1.GetValue()
+      icon = self.textBox2.GetValue()
+      folders = []
+      for i in range(0, self.folderList.GetItemCount()):
+        folders.append(self.folderList.GetItemText(i))
+
+      folderName = self.textBox3.GetValue()
+      moveFiles = self.check1.GetValue()
+      createSymbolic = self.check2.GetValue()
+
+      if (title.replace(" ", "") == "" or
+          folderName.replace(" ", "") == "" or
+          len(folders) == 0):
+        wx.MessageBox(
+            "Todos los campos salvo el icono, son necesarios",
+            "Error",
+            style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP
+          )
+      
+
+      if not os.path.isdir(os.path.join(
+            globals.fullPath(globals.options['savesFolder']),
+            folderName)):
+        os.makedirs(os.path.join(
+            globals.fullPath(globals.options['savesFolder']),
+            folderName
+          ))
+      
+      actual = 0
+      foldersData = {}
+      for folder in folders:
+        dst = os.path.join(
+            globals.fullPath(globals.options['savesFolder']),
+            folderName,
+            "{0:03d}".format(actual)
+          )
           
+        foldersData.update({
+            globals.folderToWindowsVariable(folder): globals.relativePath(dst)
+          })
+
+        if moveFiles:
+          os.rename(folder, dst)
+        
+        if createSymbolic:
+          #os.symlink(dst, folder) # Fails, so I've used subprocess
+          subprocess.check_call(
+              'mklink /J "{}" "{}"'.format(folder, dst), shell=True
+            )
+        
+        actual+=1
+
+      print(foldersData)
+      
+      # Adding data to database
+      
       event.Skip()
       
     def get_list_data(self):

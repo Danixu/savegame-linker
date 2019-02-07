@@ -7,6 +7,7 @@
 '''
 
 from pathlib import Path
+import ctypes
 import globals
 import logging
 import sys
@@ -94,7 +95,7 @@ class mainWindow(wx.Frame):
         image_adddisabled.ConvertToBitmap(),
         pos=(427, 20), size=(36,36)
       )
-    button_add.Bind(wx.EVT_LEFT_DOWN, self.AddButtonClick)
+    button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
     
     # Remove #
     log.debug("Adding 'Remove' button")
@@ -109,7 +110,7 @@ class mainWindow(wx.Frame):
         image_remdisabled.ConvertToBitmap(),
         pos=(427, 65), size=(36,36)
       )
-    button_rem.Bind(wx.EVT_LEFT_DOWN, self.RemButtonClick)
+    button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
     
     # Refresh #
     log.debug("Adding 'Refresh' button")
@@ -124,7 +125,7 @@ class mainWindow(wx.Frame):
         image_refdisabled.ConvertToBitmap(),
         pos=(427, 110), size=(36,36)
       )
-    button_ref.Bind(wx.EVT_LEFT_DOWN, self.RefreshButtonClick)
+    button_ref.Bind(wx.EVT_LEFT_UP, self.RefreshButtonClick)
     
     # Run #
     log.debug("Adding 'Run' button")
@@ -139,7 +140,7 @@ class mainWindow(wx.Frame):
         image_rundisabled.ConvertToBitmap(),
         pos=(427, 450), size=(36,36)
       )
-    button_run.Bind(wx.EVT_LEFT_DOWN, self.RunButtonClick)  
+    button_run.Bind(wx.EVT_LEFT_UP, self.RunButtonClick)  
 
     #=== Menu ===#
     log.debug("Creating main menu")
@@ -287,6 +288,16 @@ class mainWindow(wx.Frame):
 #======================
 # Start GUI
 #======================
+""" If simlink fails, run as admin (on Windows 10 works without admin)
+def is_admin():
+  try:
+    return ctypes.windll.shell32.IsUserAnAdmin()
+  except:
+    return False
+    
+if not is_admin():
+  ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+"""
 
 mainWindow().Show()
 app.MainLoop()

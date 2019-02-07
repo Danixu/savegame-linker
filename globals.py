@@ -2,6 +2,7 @@
 
 # globals.py
 import logging
+import os
 from pathlib import Path
 import sqlite3
 import wx
@@ -17,11 +18,15 @@ def init():
       "icons": Path("data/icons/"),
     }
     
+    global rootPath
+    rootPath = os.path.dirname(os.path.realpath(__file__))
+    
     # Data from DB
     global options
     options = {
       "logLevel": logging.INFO,
-      "logFile": "mainWindow.log"
+      "logFile": "mainWindow.log",
+      "savesFolder": "Saves"
     }
     
     # Formatos
@@ -90,8 +95,13 @@ def init():
       data = c.fetchone()
       if data:
         options[item] = strToValue(data[2], data[1])
-      
+        
     c.close()
+     
+    ## Doing startup things ##
+    if not os.path.isdir(fullPath(options['savesFolder'])):
+      os.makedirs(fullPath(options['savesFolder']))
+
     
 def strToValue(str, kind):
   if kind == "logLevel":
@@ -122,3 +132,28 @@ def valueToStr(value, kind):
       return "DEBUG"
     else:
       return "INFO"
+      
+def fullPath(path):
+  if ":" in path or path[0] == "/":
+    return path
+  else:
+    return os.path.join(rootPath, path)
+    
+def relativePath(path):
+  if ":" in path or path[0] == "/":
+    return path.replace(rootPath, "")
+  else:
+    return path
+    
+def folderToWindowsVariable(folder):
+  for variable in ['USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'Public', 'ALLUSERSPROFILE']:
+    folder = folder.replace(os.environ[variable], "%{}%".format(variable))
+    
+  return folder
+
+
+def windowsVariableToFolder(folder):
+  for variable in ['USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'Public', 'ALLUSERSPROFILE']:
+    folder = folder.replace("%{}%".format(variable), os.environ[variable])
+    
+  return folder
