@@ -10,6 +10,8 @@ from pathlib import Path
 import ctypes
 import globals
 import logging
+from io import BytesIO
+from PIL import Image
 import sys
 from widgets.CheckListCtrl import CheckListCtrl
 from widgets.ShapedButton import ShapedButton
@@ -93,6 +95,7 @@ class mainWindow(wx.Frame):
         image_addup.ConvertToBitmap(),
         image_adddown.ConvertToBitmap(),
         image_adddisabled.ConvertToBitmap(),
+        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
         pos=(427, 20), size=(36,36)
       )
     button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
@@ -108,6 +111,7 @@ class mainWindow(wx.Frame):
         image_remup.ConvertToBitmap(),
         image_remdown.ConvertToBitmap(),
         image_remdisabled.ConvertToBitmap(),
+        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
         pos=(427, 65), size=(36,36)
       )
     button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
@@ -123,6 +127,7 @@ class mainWindow(wx.Frame):
         image_refup.ConvertToBitmap(),
         image_refdown.ConvertToBitmap(),
         image_refdisabled.ConvertToBitmap(),
+        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
         pos=(427, 110), size=(36,36)
       )
     button_ref.Bind(wx.EVT_LEFT_UP, self.RefreshButtonClick)
@@ -138,6 +143,7 @@ class mainWindow(wx.Frame):
         image_runup.ConvertToBitmap(), 
         image_rundown.ConvertToBitmap(), 
         image_rundisabled.ConvertToBitmap(),
+        audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
         pos=(427, 450), size=(36,36)
       )
     button_run.Bind(wx.EVT_LEFT_UP, self.RunButtonClick)  
@@ -177,8 +183,11 @@ class mainWindow(wx.Frame):
 
     AddGame = addGame(self)
     AddGame.ShowModal()
+    
+    if globals.refreshList:
+      self.itemListRefresh()
+      globals.refreshList = False
 
-    print("despues de spawn")
     event.Skip()
     
   
@@ -203,7 +212,6 @@ class mainWindow(wx.Frame):
       if result == wx.ID_YES:
         for item in reversed(toRemove):
           GameID = self.itemList.GetItemData(item)
-          print(GameID)
           
           try:
             c = globals.db_savedata.cursor()
@@ -247,6 +255,11 @@ class mainWindow(wx.Frame):
     
     image = wx.Image(str(globals.dataFolder["images"] / 'tick_2.png'), wx.BITMAP_TYPE_ANY)
     self.il.Add(wx.Bitmap(image))
+    
+    image = wx.Image(str(globals.dataFolder["images"] / 'no_image.png'), wx.BITMAP_TYPE_ANY)
+    self.il.Add(wx.Bitmap(image))
+    
+    icon_image = 2
   
     log.info("Cleaning the list")
     self.itemList.DeleteAllItems()
@@ -261,14 +274,72 @@ class mainWindow(wx.Frame):
     
     log.info("Adding new items to list")
     for campo in c:
-      image = wx.Image( str(globals.dataFolder["icons"] / campo[4]), wx.BITMAP_TYPE_ANY )
-      #image = image.Blur(1)
-      image = image.Scale(44, 44, wx.IMAGE_QUALITY_HIGH)
-      image.ConvertAlphaToMask(threshold=1)
-      image = image.Size(wx.Size(48,48), wx.Point(2,2), 255, 255, 255)
-      
-      self.il.Add(image.ConvertToBitmap())
-    
+      if campo[4] != None:
+        if type(campo[4]).__name__ == 'str':
+          #image = wx.Image( str(globals.dataFolder["icons"] / campo[4]), wx.BITMAP_TYPE_ANY)
+          #image = image.Blur(1)
+          #image = image.Scale(44, 44, wx.IMAGE_QUALITY_HIGH)
+          #image.ConvertAlphaToMask(threshold=1)
+          #image = image.Size(wx.Size(48,48), wx.Point(2,2), 255, 255, 255)
+          
+          #im = Image.open(str(globals.dataFolder["icons"] / campo[4]))
+          #im.thumbnail((44, 44), Image.LANCZOS)
+          #print(im.size)
+          
+          #sbuf = BytesIO()
+          #im.save(sbuf, 'PNG')
+          
+          #im2 = Image.open(sbuf)
+          #im2.thumbnail((48, 48), Image.LANCZOS)
+          
+          #width, height = im2.size
+          #print(width, height)
+          #image = wx.Bitmap.FromBuffer(width, height, im2.tobytes())
+          #image = wx.Image(44,44)
+          #image.SetData(im2.convert("RGB").tobytes())
+          #image.SetAlpha(im2.convert("RGBA").tobytes()[3::4])
+         
+          #image = image.Size(wx.Size(48,48), wx.Point(2,2), 255, 255, 255)
+          #image = image.ConvertToBitmap()
+          #self.il.Add(image)
+          
+          #print(str(globals.dataFolder["icons"] / campo[4]))
+          tmp_image = Image.open(str(globals.dataFolder["icons"] / campo[4]))
+          sbuf = BytesIO()
+          
+          tmp_image.save(sbuf, "WebP", quality=100)
+          tmp_image.close()
+        else:
+          #sbuf = BytesIO(campo[4])
+          #image = wx.Image(sbuf, wx.BITMAP_TYPE_ANY)
+          #image = image.Blur(1)
+          #image = image.Scale(44, 44, wx.IMAGE_QUALITY_HIGH)
+          #image.ConvertAlphaToMask(threshold=1)
+
+          bindata = BytesIO(campo[4])
+          tmp_image = Image.open(bindata)
+          sbuf = BytesIO()
+          
+          tmp_image.save(sbuf, "PNG", compress_level=1)
+          tmp_image.close()
+          #sbuf = BytesIO(campo[4])
+          
+        
+        im2 = Image.open(sbuf)
+        
+        im2.thumbnail((44, 44), Image.BICUBIC)
+        
+        im2 = globals.remove_transparency(im2).convert("RGB")
+        
+        width, height = im2.size
+        image = wx.Image(width, height, im2.tobytes())
+        image = image.Size(wx.Size(48,48), wx.Point(2,2), 255, 255, 255)
+
+        image = image.ConvertToBitmap()
+        self.il.Add(image)
+        
+        icon_image = self.il.GetImageCount()-1
+        
       index = self.itemList.InsertItem(sys.maxsize, "")
       self.itemList.SetItemColumnImage(index, 1, self.il.GetImageCount()-1)
       self.itemList.SetItem(index, 2, campo[2])

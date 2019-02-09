@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # globals.py
+from PIL import Image
 import logging
 import os
 from pathlib import Path
@@ -10,6 +11,9 @@ import wx
 def init():
     global BACKGROUNDCOLOR
     BACKGROUNDCOLOR = (240, 240, 240, 255)
+    
+    global refreshList
+    refreshList = False
 
     global dataFolder
     dataFolder = {
@@ -52,36 +56,50 @@ def init():
     # Games table
     c.execute(
         "CREATE TABLE IF NOT EXISTS Games (" +
-        "id INTEGER AUTOINCREMENTAL UNIQE, " +
-        "detected_id INTEGER, " +
-        "name TEXT, " +
-        "folder TEXT, " +
-        "icon TEXT);"
+        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+        "detected_id INTEGER DEFAULT NULL, " +
+        "name TEXT UNIQE NOT NULL, " +
+        "folder TEXT NOT NULL, " +
+        "icon BLOB DEFAULT NULL);"
       )
+      
+    c.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS games_name " +
+        "ON Games(name);"
+      )
+
     
     # Saves table
     c.execute(
         "CREATE TABLE IF NOT EXISTS Saves (" +
-        "id INTEGER AUTOINCREMENTAL UNIQE, " +
-        "game_id INTEGER, " +
-        "source TEXT, " +
-        "destination TEXT);"
+        "game_id INTEGER NOT NULL, " +
+        "source TEXT NOT NULL, " +
+        "destination TEXT NOT NULL);"
+      )
+      
+    c.execute(
+        "CREATE INDEX IF NOT EXISTS saves_game_id " +
+        "ON Saves(game_id);"
       )
       
     # Backups table
     c.execute(
         "CREATE TABLE IF NOT EXISTS Backups (" +
-        "id INTEGER AUTOINCREMENTAL UNIQE, " +
-        "game_id INTEGER, " +
-        "filename TEXT);"
+        "game_id INTEGER NOT NULL, " +
+        "filename TEXT NOT NULL);"
       )
     
     # Options table
     c.execute(
         "CREATE TABLE IF NOT EXISTS Config (" +
-        "var TEXT, " +
-        "kind TEXT, " +
-        "value TEXT);"
+        "var TEXT UNIQUE NOT NULL, " +
+        "kind TEXT DEFAULT 'str', " +
+        "value TEXT NOT NULL);"
+      )
+      
+    c.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS config_var " +
+        "ON Config(var);"
       )
     
     c.close()
@@ -157,3 +175,20 @@ def windowsVariableToFolder(folder):
     folder = folder.replace("%{}%".format(variable), os.environ[variable])
     
   return folder
+  
+def remove_transparency(im, bg_colour=(255, 255, 255)):
+    # Only process if image has transparency (http://stackoverflow.com/a/1963146)
+    if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
+
+        # Need to convert to RGBA if LA format due to a bug in PIL (http://stackoverflow.com/a/1963146)
+        alpha = im.convert('RGBA').split()[-1]
+
+        # Create a new background image of our matt color.
+        # Must be RGBA because paste requires both images have the same format
+        # (http://stackoverflow.com/a/8720632  and  http://stackoverflow.com/a/9459208)
+        bg = Image.new("RGBA", im.size, bg_colour + (255,))
+        bg.paste(im, mask=alpha)
+        return bg
+
+    else:
+        return im

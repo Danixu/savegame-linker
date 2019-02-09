@@ -14,6 +14,12 @@ from pathlib import Path
 import subprocess
 import globals
 import logging
+from PIL import Image
+from io import BytesIO
+from sqlite3 import Binary
+
+### Log Configuration ###
+log = logging.getLogger("SavegameLinker")
 
 #====================================================================
 class addGame(wx.Dialog):
@@ -38,9 +44,6 @@ class addGame(wx.Dialog):
     # If not, when close button is pressed instead cancel, it keeps the memory
     # in use
     self.Bind(wx.EVT_CLOSE, self.exitGUI)
-    
-    # Varaibles del objeto
-    self.exit_code = 0
     
     # Cambiamos el icono
     icon = wx.Icon(str(globals.dataFolder["images"] / 'icons.ico'), wx.BITMAP_TYPE_ICO)
@@ -158,6 +161,7 @@ class addGame(wx.Dialog):
           image_addup.ConvertToBitmap(), 
           image_adddown.ConvertToBitmap(), 
           image_adddisabled.ConvertToBitmap(),
+          audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
           pos=(422, 108), size=(36,36)
         )
       button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
@@ -173,6 +177,7 @@ class addGame(wx.Dialog):
           image_remup.ConvertToBitmap(), 
           image_remdown.ConvertToBitmap(), 
           image_remdisabled.ConvertToBitmap(),
+          audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
           pos=(422, 150), size=(36,36)
         )
       button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
@@ -294,8 +299,8 @@ class addGame(wx.Dialog):
             "Error",
             style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP
           )
-      
 
+      # Create saves folder
       if not os.path.isdir(os.path.join(
             globals.fullPath(globals.options['savesFolder']),
             folderName)):
@@ -304,6 +309,7 @@ class addGame(wx.Dialog):
             folderName
           ))
       
+      # Create a dictionary with sources and destinations
       actual = 0
       foldersData = {}
       for folder in folders:
@@ -316,21 +322,100 @@ class addGame(wx.Dialog):
         foldersData.update({
             globals.folderToWindowsVariable(folder): globals.relativePath(dst)
           })
-
-        if moveFiles:
-          os.rename(folder, dst)
-        
-        if createSymbolic:
-          #os.symlink(dst, folder) # Fails, so I've used subprocess
-          subprocess.check_call(
-              'mklink /J "{}" "{}"'.format(folder, dst), shell=True
-            )
         
         actual+=1
-
-      print(foldersData)
       
-      # Adding data to database
+      icon_data = None
+      if os.path.isfile(icon):
+        # The file is saved to BytesIO and reopened because
+        # if not, some ico files are not resized correctly
+        tmp_data = BytesIO()
+        tmp_image = Image.open(icon)
+        tmp_image.save(tmp_data, "PNG", compress_level = 1)
+        tmp_image.close()
+        
+        tmp_image = Image.open(tmp_data)
+        
+        if tmp_image.size[0] < 44 and tmp_image.size[1] < 44:
+          width, height = tmp_image.size
+        
+          if width > height:
+            factor = 44 / width
+            width = 44
+            height = int(height * factor)
+            
+            if height%2 > 0:
+              height += 1
+            
+            tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+          else:
+            factor = 44 / height
+            width = int(width * factor)
+            height = 44
+            
+            if width%2 > 0:
+              height += 1
+            
+            tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+
+        else:
+          tmp_image.thumbnail((44, 44), Image.LANCZOS)
+
+        icon_data = BytesIO()
+        tmp_image.save(icon_data, "PNG", optimize=True)
+        tmp_image.close()
+
+      # Inserting all data on DB
+      c = globals.db_savedata.cursor()
+      log.debug("INSERT INTO Games (name, folder, icon) VALUES " +
+          "({}, {}, {});".format(title, folderName, icon_data)
+        )
+        
+      c.execute(
+          "INSERT INTO Games (name, folder, icon) VALUES " +
+          "(?, ?, ?);", (title, folderName, Binary(icon_data.getvalue()))
+        )
+        
+      icon_data.close()
+      tmp_data.close()
+      
+      rowid = c.lastrowid
+      c.execute(
+          "SELECT id FROM Games WHERE rowid = ?", (rowid,)
+        )
+        
+      
+      game_id = c.fetchone()[0]
+      
+      for src, dst in foldersData.items():
+        log.debug("INSERT INTO Saves (game_id, source, destination) VALUES " +
+            "({}, {}, {});".format(game_id, src, dst)
+          )
+          
+        c.execute(
+            "INSERT INTO Saves (game_id, source, destination) VALUES " +
+            "(?, ?, ?);", (game_id, src, dst)
+          )
+          
+      c.close()
+      
+      # If move files and create symlink are checked, then do it
+      for src, dst in foldersData.items():
+        if moveFiles:
+          os.rename(src, dst)
+        
+        if createSymbolic:
+          #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
+          subprocess.check_call(
+              'mklink /J "{}" "{}"'.format(src, dst), shell=True
+            )
+            
+      # If everything was fine, we commit the data to DB
+      globals.db_savedata.commit()
+      
+      # Set the game as added to update on close
+      globals.refreshList = True
+      self.mainWindow.exitGUI(0)
       
       event.Skip()
       
