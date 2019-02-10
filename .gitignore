@@ -5,6 +5,7 @@ savedata.db
 build/
 icons/
 data/
+Saves/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

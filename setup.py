@@ -6,9 +6,9 @@ __version__ = "1.0.0"
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-include_files = ['images']
-excludes = ["OpenGL", "ctypes", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml"]
-packages = ["widgets", "windows"]
+include_files = ['images', 'audio']
+excludes = ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml"]
+packages = ["widgets", "windows", "ctypes"]
 
 setup (
   name = "appname",
