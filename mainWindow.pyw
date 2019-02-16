@@ -12,6 +12,8 @@ import globals
 import logging
 from io import BytesIO
 from PIL import Image
+import shlex
+import subprocess
 import sys
 from widgets.CheckListCtrl import CheckListCtrl
 from widgets.ShapedButton import ShapedButton
@@ -186,9 +188,8 @@ class mainWindow(wx.Frame):
         # Update if changed
         if AddGame.updated:
             self.itemListRefresh()
-            globals.refreshList = False
 
-        del(AddGame)
+        AddGame.close()
         event.Skip()
         
     
@@ -259,13 +260,15 @@ class mainWindow(wx.Frame):
                     )
                     
                     for folder in c:
-                        if not globals.makeSymbolicLink(
-                                globals.windowsVariableToFolder(folder[1]), folder[0]):
+                        src = globals.windowsVariableToFolder(folder[1])
+                        dst = folder[0]
+                        
+                        if not globals.makeSymbolicLink(src, dst):
                             log.error("Ha ocurrido un error creando el enlace: " +
-                                    "{} -> {}".format(folder[1], folder[0])
+                                    "{} -> {}".format(dst, src)
                                 )
                             dlg = wx.MessageDialog(self, "Ha ocurrido un error creando " +
-                                    "el enlace: {} -> {}".format(folder[1], folder[0])
+                                    "el enlace: {} -> {}".format(dst, src)
                                 )
                             dlg.ShowModal()
  

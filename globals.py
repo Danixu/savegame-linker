@@ -2,8 +2,10 @@
 
 # globals.py
 from PIL import Image
+import datetime
 import logging
 import os
+import shutil
 import subprocess
 from pathlib import Path
 import sqlite3
@@ -35,7 +37,9 @@ def init():
         options = {
             "logLevel": logging.INFO,
             "logFile": "mainWindow.log",
-            "savesFolder": "Saves"
+            "savesFolder": "Saves",
+            "moveOnAdd": False,
+            "linkOnAdd": True
         }
         
         # Formatos
@@ -120,46 +124,40 @@ def init():
 
         
 def strToValue(str, kind):
-    if kind == "logLevel":
-        if str == "CRITICAL":
-            return logging.CRITICAL
-        elif str == "ERROR":
-            return logging.ERROR
-        elif str == "WARNING":
-            return logging.WARNING
-        elif str == "INFO":
-            return logging.INFO
-        elif str == "DEBUG":
-            return logging.DEBUG
+    if kind == "bool":
+        if str.lower() == "true":
+            return True
         else:
-            return logging.INFO
+            return False
             
-def valueToStr(value, kind):
-    if kind == "logLevel":
-        if value == logging.CRITICAL:
-            return "CRITICAL"
-        elif value == logging.ERROR:
-            return "ERROR"
-        elif value == logging.WARNING:
-            return "WARNING"
-        elif value == logging.INFO:
-            return "INFO"
-        elif value == logging.DEBUG:
-            return "DEBUG"
-        else:
-            return "INFO"
+    if kind == "int":
+        return int(str)
+        
+    return str
+
+        
+def saveOption(key, value):
+    c = db_savedata.cursor()
+    options[key] = value
+    query = "INSERT OR REPLACE INTO Config VALUES (?,?,?);"
+    c.execute(query, key, type(value).__name__, str(value).lower())
+    c.close()
+    db_savedata.commit()
+
             
 def fullPath(path):
     if ":" in path or path[0] == "/":
         return path
     else:
         return os.path.join(rootPath, path)
+
         
 def relativePath(path):
     if ":" in path or path[0] == "/":
         return path.replace("{}\\".format(rootPath.rstrip("\\")), "")
     else:
         return path
+
         
 def folderToWindowsVariable(folder):
     for variable in ['USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'Public', 'ALLUSERSPROFILE']:
@@ -172,6 +170,7 @@ def windowsVariableToFolder(folder):
         folder = folder.replace("%{}%".format(variable), os.environ[variable])
         
     return folder
+
     
 def remove_transparency(im, bg_colour=(255, 255, 255)):
         # Only process if image has transparency (http://stackoverflow.com/a/1963146)
@@ -187,9 +186,30 @@ def remove_transparency(im, bg_colour=(255, 255, 255)):
 
         else:
                 return im
+
                 
 def makeSymbolicLink(src, dst):
+    log = logging.getLogger("SavegameLinker")
+    log.info("Creating symlink...")
     try:
+        # Check if is a synlink
+        child = subprocess.Popen(
+            "fsutil reparsepoint query \"{}\"".format(src),
+            stdout=subprocess.PIPE
+        )
+        streamdata = child.communicate()[0]
+        rc = child.returncode
+        if rc == 0:
+            # If is a symlink, just remove it
+            #shutil.rmtree(src)
+            os.rmdir(src)
+        else:
+            # If not, rename the folder
+            now = datetime.date.today().strftime("%Y%m%d_%H%M%S")
+            newName = "{}-{}".format(src, now)
+            os.rename(src, newName)
+            
+            
         #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
         subprocess.check_call(
                 'mklink /J "{}" "{}"'.format(src, dst), shell=True
@@ -197,5 +217,6 @@ def makeSymbolicLink(src, dst):
         return True
             
     except Exception as e:
+        log.error("Error creating symlink: {}".format(e))
         return False
         

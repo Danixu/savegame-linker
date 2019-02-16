@@ -141,12 +141,7 @@ class options(wx.Dialog):
             # Set values on widgets
             self.textBox2.SetValue(globals.options['logFile'])
             
-            found = logLevel.FindString(
-                    globals.valueToStr(
-                            globals.options['logLevel'],
-                            "logLevel"
-                    )
-                )
+            found = logLevel.FindString(globals.options['logLevel'])
             logLevel.SetSelection(found)
             
             # Accept/Cancel buttons
