@@ -330,9 +330,9 @@ class mainWindow(wx.Frame):
                 image = image.ConvertToBitmap()
                 icon_image = self.il.Add(image)
                 sbuf.close()
-                
+
             index = self.itemList.InsertItem(sys.maxsize, "")
-            self.itemList.SetItemColumnImage(index, 1, self.il.GetImageCount()-1)
+            self.itemList.SetItemColumnImage(index, 1, icon_image)
             self.itemList.SetItem(index, 2, campo[2])
             self.itemList.SetItemData(index, campo[0])
 
