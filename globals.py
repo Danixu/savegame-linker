@@ -141,7 +141,7 @@ def saveOption(key, value):
     c = db_savedata.cursor()
     options[key] = value
     query = "INSERT OR REPLACE INTO Config VALUES (?,?,?);"
-    c.execute(query, key, type(value).__name__, str(value).lower())
+    c.execute(query, (key, type(value).__name__, str(value).lower()))
     c.close()
     db_savedata.commit()
 

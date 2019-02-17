@@ -395,9 +395,10 @@ class addGame(wx.Dialog):
             for src, dst in foldersData.items():
                 if moveFiles:
                     os.rename(src, dst)
-                
-                if createSymbolic:
-                    globals.makeSymbolicLink(src, dst)
+                    if createSymbolic:
+                        globals.makeSymbolicLink(src, dst)
+                else:
+                    os.makedirs(dst)
 
             globals.saveOption('moveOnAdd', moveFiles)
             globals.saveOption('linkOnAdd', createSymbolic)
@@ -405,7 +406,7 @@ class addGame(wx.Dialog):
             globals.db_savedata.commit()
             
             # Set the game as added to update on close
-            self.updated = True
+            self.mainWindow.updated = True
             self.mainWindow.exitGUI(0)
             
             event.Skip()
