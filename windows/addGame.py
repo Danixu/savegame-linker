@@ -12,6 +12,8 @@ import sys
 import os
 import globals
 import logging
+import json
+import base64
 from PIL import Image
 from io import BytesIO
 from sqlite3 import Binary
@@ -29,7 +31,7 @@ class addGame(wx.Dialog):
     def close(self):
         self.Destroy()
 
-    def __init__(self, parent):
+    def __init__(self, parent, genJson = False):
         wx.Dialog.__init__(
                 self, 
                 parent, 
@@ -40,6 +42,7 @@ class addGame(wx.Dialog):
             
         # Variables
         self.updated = False
+        self.genJson = genJson
         
         # Binding close button to avoid memory leak
         # If not, when close button is pressed instead cancel, it keeps the memory
@@ -202,13 +205,16 @@ class addGame(wx.Dialog):
             self.check2.SetValue(globals.options['linkOnAdd'])
             #Set Check2 status depending of Check1
             self.checkBoxChange(None)
+            if self.mainWindow.genJson:
+                self.check1.Disable()
+                self.check2.Disable()
 
             self.btnAceptar = wx.Button(self, -1, "Aceptar",
                     pos=(150, 410), size=(80,30)
                 )
             self.btnAceptar.Bind(wx.EVT_LEFT_UP, self.addGameToDB)
-            self.btnAceptar.Disable()
-                
+            if not self.mainWindow.genJson:
+                self.btnAceptar.Disable()
             self.btnCancelar = wx.Button(self, -1, "Cancelar",
                     pos=(236, 410), size=(80,30)
                 )
@@ -223,7 +229,7 @@ class addGame(wx.Dialog):
         def SelectIconButton(self, event):
             with wx.FileDialog(self, "Abrir Imagen", 
                     wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
-                    style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
+                    style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_PREVIEW) as fileDialog:
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
                     event.Skip()
                     return
@@ -338,9 +344,12 @@ class addGame(wx.Dialog):
                     )
 
             # Create saves folder
-            if not os.path.isdir(os.path.join(
-                        globals.fullPath(globals.options['savesFolder']),
-                        folderName)):
+            if not os.path.isdir(
+                        os.path.join(
+                            globals.fullPath(globals.options['savesFolder']),
+                            folderName
+                        ) 
+                    ) and not self.mainWindow.genJson:
                 os.makedirs(os.path.join(
                         globals.fullPath(globals.options['savesFolder']),
                         folderName
@@ -363,51 +372,75 @@ class addGame(wx.Dialog):
                 actual+=1
             
             icon_data = globals.imageResize(self._gameIcon)
-            # Inserting all data on DB
-            c = globals.db_savedata.cursor()
-            log.debug("INSERT INTO Games (name, folder, icon) VALUES " +
-                    "({}, {}, {});".format(title, folderName, icon_data)
-                )
-            c.execute(
-                    "INSERT INTO Games (name, folder, icon) VALUES " +
-                    "(?, ?, ?);", (title, folderName, 
-                    Binary(icon_data.getvalue()) if icon_data else None)
-                )
-            if icon_data:
-                icon_data.close()
-            rowid = c.lastrowid
-            c.execute(
-                    "SELECT id FROM Games WHERE rowid = ?", (rowid,)
-                )
-            game_id = c.fetchone()[0]
             
-            for src, dst in foldersData.items():
-                log.debug("INSERT INTO Saves (game_id, source, destination) VALUES " +
-                        "({}, {}, {});".format(game_id, dst, globals.folderToWindowsVariable(src))
+            if self.mainWindow.genJson:
+                with wx.FileDialog(self, "Guardar JSON", 
+                        wildcard="JSON|*.json",
+                        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
+                    if fileDialog.ShowModal() == wx.ID_CANCEL:
+                        event.Skip()
+                        return
+
+                    jsonFile = fileDialog.GetPath()
+                    with open(jsonFile, "w") as fOut:
+                        jsonData = {
+                            "title": title,
+                            "icon": base64.b64encode(icon_data.getvalue()).decode("utf-8"),
+                            "folders": [key for key in foldersData]
+                        }
+                        fOut.write(json.dumps(jsonData, indent=4, sort_keys=True))
+                        
+                wx.MessageBox(
+                        "Se ha guardado correctamente el fichero JSON.",
+                        "Guardado",
+                        style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
+                    )
+            else:
+                # Inserting all data on DB
+                c = globals.db_savedata.cursor()
+                log.debug("INSERT INTO Games (name, folder, icon) VALUES " +
+                        "({}, {}, {});".format(title, folderName, icon_data)
                     )
                 c.execute(
-                        "INSERT INTO Saves (game_id, source, destination) VALUES " +
-                        "(?, ?, ?);", (game_id, dst, globals.folderToWindowsVariable(src))
+                        "INSERT INTO Games (name, folder, icon) VALUES " +
+                        "(?, ?, ?);", (title, folderName, 
+                        Binary(icon_data.getvalue()) if icon_data else None)
                     )
-            c.close()
-            
-            # If move files and create symlink are checked, then do it
-            for src, dst in foldersData.items():
-                if moveFiles:
-                    os.rename(src, dst)
-                    if createSymbolic:
-                        globals.makeSymbolicLink(src, dst)
-                else:
-                    os.makedirs(dst)
+                if icon_data:
+                    icon_data.close()
+                rowid = c.lastrowid
+                c.execute(
+                        "SELECT id FROM Games WHERE rowid = ?", (rowid,)
+                    )
+                game_id = c.fetchone()[0]
+                
+                for src, dst in foldersData.items():
+                    log.debug("INSERT INTO Saves (game_id, source, destination) VALUES " +
+                            "({}, {}, {});".format(game_id, dst, globals.folderToWindowsVariable(src))
+                        )
+                    c.execute(
+                            "INSERT INTO Saves (game_id, source, destination) VALUES " +
+                            "(?, ?, ?);", (game_id, dst, globals.folderToWindowsVariable(src))
+                        )
+                c.close()
+                
+                # If move files and create symlink are checked, then do it
+                for src, dst in foldersData.items():
+                    if moveFiles:
+                        os.rename(src, dst)
+                        if createSymbolic:
+                            globals.makeSymbolicLink(src, dst)
+                    else:
+                        os.makedirs(dst)
 
-            globals.saveOption('moveOnAdd', moveFiles)
-            globals.saveOption('linkOnAdd', createSymbolic)
-            # If everything was fine, we commit the data to DB
-            globals.db_savedata.commit()
-            
-            # Set the game as added to update on close
-            self.mainWindow.updated = True
-            self.mainWindow.exitGUI(0)
+                globals.saveOption('moveOnAdd', moveFiles)
+                globals.saveOption('linkOnAdd', createSymbolic)
+                # If everything was fine, we commit the data to DB
+                globals.db_savedata.commit()
+                
+                # Set the game as added to update on close
+                self.mainWindow.updated = True
+                self.mainWindow.exitGUI(0)
             
             event.Skip()
             
@@ -422,15 +455,17 @@ class addGame(wx.Dialog):
             textBoxText = textBox.GetValue()
             if textBox == self.textBox1:
                 if len(textBoxText) > 0:
-                    temp = globals.db_savedata.cursor()
-                    temp.execute(
-                        "SELECT COUNT(name) FROM Games WHERE name = ?",
-                        (textBoxText,)
-                    )
-                    found = temp.fetchone()
-                    temp.close()
+                    found = None
+                    if not self.mainWindow.genJson:
+                        temp = globals.db_savedata.cursor()
+                        temp.execute(
+                            "SELECT COUNT(name) FROM Games WHERE name = ?",
+                            (textBoxText,)
+                        )
+                        found = temp.fetchone()
+                        temp.close()
                     
-                    if not found or found[0] == 0:
+                    if self.mainWindow.genJson or not found or found[0] == 0:
                         self.text1_warn.Hide()
                         textBox.SetBackgroundColour(wx.Colour(255, 255, 255))
                         textBox.Refresh()
@@ -458,7 +493,7 @@ class addGame(wx.Dialog):
                         globals.fullPath(globals.options['savesFolder']),
                         textBoxText
                     )
-                    if not os.path.isdir(fName):
+                    if self.mainWindow.genJson or not os.path.isdir(fName):
                         self.text4_warn.Hide()
                         textBox.SetBackgroundColour(wx.Colour(255, 255, 255))
                         textBox.Refresh()
