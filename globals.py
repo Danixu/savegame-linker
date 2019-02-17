@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # globals.py
+from io import BytesIO
 from PIL import Image
 import datetime
 import logging
@@ -219,4 +220,47 @@ def makeSymbolicLink(src, dst):
     except Exception as e:
         log.error("Error creating symlink: {}".format(e))
         return False
+
+def imageResize(fName, nWidth=44, nHeight=44):
+    if not fName == None and os.path.isfile(fName):
+        # The file is saved to BytesIO and reopened because
+        # if not, some ico files are not resized correctly
+        tmp_data = BytesIO()
+        tmp_image = Image.open(fName)
+        tmp_image.save(tmp_data, "PNG", compress_level = 1)
+        tmp_image.close()
         
+        tmp_image = Image.open(tmp_data)
+        
+        if tmp_image.size[0] < nWidth and tmp_image.size[1] < nHeight:
+            width, height = tmp_image.size
+        
+            if width > height:
+                factor = nWidth / width
+                width = nWidth
+                height = int(height * factor)
+                
+                if height%2 > 0:
+                    height += 1
+                
+                tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+            else:
+                factor = nHeight / height
+                width = int(width * factor)
+                height = nHeight
+                
+                if width%2 > 0:
+                    height += 1
+                
+                tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+
+        else:
+            tmp_image.thumbnail((nWidth, nHeight), Image.LANCZOS)
+
+        icon_data = BytesIO()
+        tmp_image.save(icon_data, "PNG", optimize=True)
+        tmp_image.close()
+        tmp_data.close()
+        return icon_data
+    else:
+        return None

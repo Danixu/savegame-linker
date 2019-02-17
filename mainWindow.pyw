@@ -295,7 +295,7 @@ class mainWindow(wx.Frame):
         image = wx.Image(str(globals.dataFolder["images"] / 'tick_2.png'), wx.BITMAP_TYPE_ANY)
         self.il.Add(wx.Bitmap(image))
         
-        image = wx.Image(str(globals.dataFolder["images"] / 'no_image.png'), wx.BITMAP_TYPE_ANY)
+        image = wx.Image(str(globals.dataFolder["images"] / 'no_image_small.png'), wx.BITMAP_TYPE_ANY)
         self.il.Add(wx.Bitmap(image))
 
         log.info("Cleaning the list")

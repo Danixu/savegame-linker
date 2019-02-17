@@ -99,6 +99,7 @@ class addGame(wx.Dialog):
             self._hasName = False
             self._hasFolders = False
             self._hasOutput = False
+            self._gameIcon = None
     
             ### Grupo Título ###
             text1 = wx.StaticText(self, id=wx.ID_ANY, label="Título:",
@@ -106,43 +107,38 @@ class addGame(wx.Dialog):
                     name=wx.StaticTextNameStr)
             text1.SetFont(globals.labelFormat)
             text1.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text1_warn = wx.StaticText(self, id=wx.ID_ANY, label="No puede estar vacío",
+            self.text1_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
                     pos=(280, 5), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             self.text1_warn.SetFont(globals.labelFormat)
             self.text1_warn.SetForegroundColour(wx.Colour(255, 0, 0))
-            self.textBox1 = wx.TextCtrl(self, -1, "", (6, 23), (450, 20),
+            self.textBox1 = wx.TextCtrl(self, -1, "", (6, 23), (348, 20),
                     wx.BORDER_STATIC|wx.TE_LEFT)
             self.textBox1.SetFont(globals.textBoxFormat)
             self.textBox1.SetBackgroundColour(wx.Colour(255, 150, 150))
- 
-            ### Grupo Icono ###
-            text2 = wx.StaticText(self, id=wx.ID_ANY, label="Icono:",
+            
+            ### Grupo nombre de Carpeta ###
+            text4 = wx.StaticText(self, id=wx.ID_ANY, 
+                    label="Nombre de carpeta donde guardar:",
                     pos=(6, 47), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
-            text2.SetFont(globals.labelFormat)
-            text2.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.textBox2 = wx.TextCtrl(self, -1, "", (6, 67), (410, 20),
-                    wx.BORDER_STATIC | wx.TE_LEFT | wx.TE_READONLY)
-            self.textBox2.SetFont(globals.textBoxFormat)
-            self.textBox2.SetBackgroundColour(wx.WHITE)
-
-            ## Add Button ###
-            image_iconup = wx.Image(str(globals.dataFolder["images"] / 'folder_close.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_iconover = wx.Image(str(globals.dataFolder["images"] / 'folder_open.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_icondown = wx.Image(str(globals.dataFolder["images"] / 'folder_click.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_icondisabled = image_iconup.ConvertToDisabled(70)
-            button_icon = ShapedButton(self, 
-                    image_iconup.ConvertToBitmap(), 
-                    image_icondown.ConvertToBitmap(), 
-                    image_icondisabled.ConvertToBitmap(),
-                    image_iconover.ConvertToBitmap(),
-                    pos=(423, 55), size=(36,36)
-                )
-            button_icon.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
+            text4.SetFont(globals.labelFormat)
+            text4.SetForegroundColour(wx.Colour(0, 51, 153))
+            self.text4_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
+                    pos=(280, 47), size=wx.DefaultSize, style=0,
+                    name=wx.StaticTextNameStr)
+            self.text4_warn.SetFont(globals.labelFormat)
+            self.text4_warn.SetForegroundColour(wx.Colour(255, 0, 0))
+            self.textBox3 = wx.TextCtrl(self, -1, "", (6, 67), (348, 20),
+                    wx.BORDER_STATIC|wx.TE_LEFT)
+            self.textBox3.SetFont(globals.textBoxFormat)
+            self.textBox3.SetBackgroundColour(wx.Colour(255, 150, 150))
+            
+            ### Icon ###
+            image_iconup = wx.Image(str(globals.dataFolder["images"] / 'no_image_big.png'),
+                     wx.BITMAP_TYPE_ANY )
+            self.iconImage = wx.StaticBitmap(self, -1, image_iconup.ConvertToBitmap(), (361, 6), (95, 95), style=wx.BORDER_THEME)
+            self.iconImage.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
             
             ### Grupo Folder List ###
             text3 = wx.StaticText(self, id=wx.ID_ANY, label="Carpetas a añadir:",
@@ -150,13 +146,13 @@ class addGame(wx.Dialog):
                     name=wx.StaticTextNameStr)
             text3.SetFont(globals.labelFormat)
             text3.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text3_warn = wx.StaticText(self, id=wx.ID_ANY, label="No puede estar vacío",
+            self.text3_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
                     pos=(280, 90), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             self.text3_warn.SetFont(globals.labelFormat)
             self.text3_warn.SetForegroundColour(wx.Colour(255, 0, 0))
             self.folderList = wx.ListCtrl(self, id=wx.ID_ANY, pos=(6, 108), 
-                    size=(410,200), style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, 
+                    size=(450,200), style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, 
                     validator=wx.DefaultValidator, name=wx.ListCtrlNameStr)
             self.folderList.InsertColumn(0, '', width=wx.LIST_AUTOSIZE_USEHEADER)
             self.folderList.SetBackgroundColour(wx.Colour(255, 150, 150))
@@ -172,7 +168,7 @@ class addGame(wx.Dialog):
                     image_adddown.ConvertToBitmap(), 
                     image_adddisabled.ConvertToBitmap(),
                     audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
-                    pos=(422, 108), size=(36,36)
+                    pos=(6, 312), size=(36,36)
                 )
             button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
             
@@ -187,27 +183,10 @@ class addGame(wx.Dialog):
                     image_remdown.ConvertToBitmap(), 
                     image_remdisabled.ConvertToBitmap(),
                     audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
-                    pos=(422, 150), size=(36,36)
+                    pos=(48, 312), size=(36,36)
                 )
             button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
-            
-            ### Grupo nombre de Carpeta ###
-            text4 = wx.StaticText(self, id=wx.ID_ANY, 
-                    label="Nombre de carpeta donde guardar:",
-                    pos=(6, 315), size=wx.DefaultSize, style=0,
-                    name=wx.StaticTextNameStr)
-            text4.SetFont(globals.labelFormat)
-            text4.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text4_warn = wx.StaticText(self, id=wx.ID_ANY, label="No puede estar vacío",
-                    pos=(280, 315), size=wx.DefaultSize, style=0,
-                    name=wx.StaticTextNameStr)
-            self.text4_warn.SetFont(globals.labelFormat)
-            self.text4_warn.SetForegroundColour(wx.Colour(255, 0, 0))
-            self.textBox3 = wx.TextCtrl(self, -1, "", (6, 333), (450, 20),
-                    wx.BORDER_STATIC|wx.TE_LEFT)
-            self.textBox3.SetFont(globals.textBoxFormat)
-            self.textBox3.SetBackgroundColour(wx.Colour(255, 150, 150))
-            
+             
             ### Grupo Checkbox ###
             self.check1 = wx.CheckBox(
                     self, id=wx.ID_ANY, 
@@ -249,7 +228,18 @@ class addGame(wx.Dialog):
                     event.Skip()
                     return
 
-                self.textBox2.SetValue(fileDialog.GetPath())
+                self._gameIcon = fileDialog.GetPath()
+                im = Image.open(
+                        globals.imageResize(self._gameIcon, 95, 95)
+                     )
+                im2 = globals.remove_transparency(im).convert("RGB")
+                im.close()
+                
+                # Create an wx.Image from image
+                width, height = im2.size
+                image = wx.Image(width, height, im2.tobytes())
+                self.iconImage.SetBitmap(image.ConvertToBitmap())
+                self.iconImage.Refresh()
             event.Skip()
         
         ## Función añadir carpeta ##
@@ -330,7 +320,6 @@ class addGame(wx.Dialog):
         def addGameToDB(self, event):
             # Recuperamos los datos
             title = self.textBox1.GetValue()
-            icon = self.textBox2.GetValue()
             folders = []
             for i in range(0, self.folderList.GetItemCount()):
                 folders.append(self.folderList.GetItemText(i))
@@ -373,47 +362,7 @@ class addGame(wx.Dialog):
                 
                 actual+=1
             
-            icon_data = None
-            if os.path.isfile(icon):
-                # The file is saved to BytesIO and reopened because
-                # if not, some ico files are not resized correctly
-                tmp_data = BytesIO()
-                tmp_image = Image.open(icon)
-                tmp_image.save(tmp_data, "PNG", compress_level = 1)
-                tmp_image.close()
-                
-                tmp_image = Image.open(tmp_data)
-                
-                if tmp_image.size[0] < 44 and tmp_image.size[1] < 44:
-                    width, height = tmp_image.size
-                
-                    if width > height:
-                        factor = 44 / width
-                        width = 44
-                        height = int(height * factor)
-                        
-                        if height%2 > 0:
-                            height += 1
-                        
-                        tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
-                    else:
-                        factor = 44 / height
-                        width = int(width * factor)
-                        height = 44
-                        
-                        if width%2 > 0:
-                            height += 1
-                        
-                        tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
-
-                else:
-                    tmp_image.thumbnail((44, 44), Image.LANCZOS)
-
-                icon_data = BytesIO()
-                tmp_image.save(icon_data, "PNG", optimize=True)
-                tmp_image.close()
-                tmp_data.close()
-
+            icon_data = globals.imageResize(self._gameIcon)
             # Inserting all data on DB
             c = globals.db_savedata.cursor()
             log.debug("INSERT INTO Games (name, folder, icon) VALUES " +
