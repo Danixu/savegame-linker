@@ -37,7 +37,7 @@ class addGame(wx.Dialog):
                 parent, 
                 style = wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.FRAME_FLOAT_ON_PARENT, 
                 title="Añadir juego", 
-                size=(485,520)
+                size=(485,550)
             )
             
         # Variables
@@ -203,20 +203,27 @@ class addGame(wx.Dialog):
                     pos=(6, 380), size=(250,20)
                 )
             self.check2.SetValue(globals.options['linkOnAdd'])
+            self.check3 = wx.CheckBox(
+                    self, id=wx.ID_ANY, 
+                    label="Generar fichero json con los datos",
+                    pos=(6, 400), size=(250,20)
+                )
+            self.check3.SetValue(globals.options['generateJson'])
             #Set Check2 status depending of Check1
             self.checkBoxChange(None)
             if self.mainWindow.genJson:
                 self.check1.Disable()
                 self.check2.Disable()
+                self.check3.Disable()
 
             self.btnAceptar = wx.Button(self, -1, "Aceptar",
-                    pos=(150, 410), size=(80,30)
+                    pos=(150, 440), size=(80,30)
                 )
             self.btnAceptar.Bind(wx.EVT_LEFT_UP, self.addGameToDB)
             if not self.mainWindow.genJson:
                 self.btnAceptar.Disable()
             self.btnCancelar = wx.Button(self, -1, "Cancelar",
-                    pos=(236, 410), size=(80,30)
+                    pos=(236, 440), size=(80,30)
                 )
             self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)        
 
@@ -255,7 +262,7 @@ class addGame(wx.Dialog):
                         style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
                     if folderDialog.ShowModal() == wx.ID_OK:
                         if folderDialog.GetPath() not in self.get_list_data():
-                            self.folderList.InsertItem(sys.maxsize, folderDialog.GetPath())
+                            self.folderList.InsertItem(920863821570964096, folderDialog.GetPath())
                             
                             if (self.textBox1.GetLineText(0) == "" 
                                     and self.textBox1.GetLineText(0) == ""):
@@ -333,6 +340,7 @@ class addGame(wx.Dialog):
             folderName = self.textBox3.GetValue()
             moveFiles = self.check1.GetValue()
             createSymbolic = self.check2.GetValue()
+            generateJson = self.check3.GetValue()
 
             if (title.replace(" ", "") == "" or
                     folderName.replace(" ", "") == "" or
@@ -373,29 +381,33 @@ class addGame(wx.Dialog):
             
             icon_data = globals.imageResize(self._gameIcon)
             
-            if self.mainWindow.genJson:
-                with wx.FileDialog(self, "Guardar JSON", 
-                        wildcard="JSON|*.json",
-                        style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
-                    if fileDialog.ShowModal() == wx.ID_CANCEL:
-                        event.Skip()
-                        return
-
-                    jsonFile = fileDialog.GetPath()
-                    with open(jsonFile, "w") as fOut:
-                        jsonData = {
-                            "title": title,
-                            "icon": base64.b64encode(icon_data.getvalue()).decode("utf-8"),
-                            "folders": [key for key in foldersData]
-                        }
-                        fOut.write(json.dumps(jsonData, indent=4, sort_keys=True))
-                        
-                wx.MessageBox(
+            # Generating Json
+            if self.mainWindow.genJson or generateJson:
+                jsonFile = "{}\\{}.json".format(
+                    globals.fullPath('gamedata'),
+                    title
+                )
+                iconBase64 = ""
+                if icon_data:
+                    iconBase64 = base64.b64encode(icon_data.getvalue()).decode("utf-8")
+                    
+                with open(jsonFile, "w") as fOut:
+                    jsonData = {
+                        "title": title,
+                        "icon": iconBase64,
+                        "folders": [key for key in foldersData]
+                    }
+                    fOut.write(json.dumps(jsonData, indent=4, sort_keys=True))
+                 
+                if self.mainWindow.genJson:
+                    wx.MessageBox(
                         "Se ha guardado correctamente el fichero JSON.",
                         "Guardado",
                         style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
                     )
-            else:
+            # if Window was not open exclusively to create a Json file
+            # it saves the data to Database
+            if not self.mainWindow.genJson:
                 # Inserting all data on DB
                 c = globals.db_savedata.cursor()
                 log.debug("INSERT INTO Games (name, folder, icon) VALUES " +
@@ -440,6 +452,11 @@ class addGame(wx.Dialog):
                 
                 # Set the game as added to update on close
                 self.mainWindow.updated = True
+                wx.MessageBox(
+                    "Se ha añadido la entrada correctamente.",
+                    "Correcto",
+                    style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
+                )
                 self.mainWindow.exitGUI(0)
             
             event.Skip()

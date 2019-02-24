@@ -6,6 +6,7 @@ build/
 icons/
 data/
 Saves/
+gamedata/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -67,3 +68,5 @@ docs/_build/
 target/
 
 savedata\.7z
+
+images_raw/diseño\.psd

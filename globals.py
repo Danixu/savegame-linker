@@ -40,7 +40,8 @@ def init():
             "logFile": "mainWindow.log",
             "savesFolder": "Saves",
             "moveOnAdd": False,
-            "linkOnAdd": True
+            "linkOnAdd": True,
+            "generateJson": True
         }
         
         # Formatos
@@ -122,6 +123,9 @@ def init():
         ## Doing startup things ##
         if not os.path.isdir(fullPath(options['savesFolder'])):
             os.makedirs(fullPath(options['savesFolder']))
+            
+        if not os.path.isdir(fullPath('gamedata')):
+            os.makedirs(fullPath('gamedata'))
 
         
 def strToValue(str, kind):
