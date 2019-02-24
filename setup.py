@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 include_files = ['images', 'audio']
 excludes = ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml", "pkg_resources"]
-packages = ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "PIL", "platform", "pygame", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "wx"]
+packages = ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "PIL", "platform", "playsound", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "wx"]
 
 setup (
   name = "Savegame Linker",

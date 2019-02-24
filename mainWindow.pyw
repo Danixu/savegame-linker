@@ -97,7 +97,7 @@ class mainWindow(wx.Frame):
                 image_addup.ConvertToBitmap(),
                 image_adddown.ConvertToBitmap(),
                 image_adddisabled.ConvertToBitmap(),
-                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                 pos=(427, 20), size=(36,36)
             )
         button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
@@ -113,7 +113,7 @@ class mainWindow(wx.Frame):
                 image_remup.ConvertToBitmap(),
                 image_remdown.ConvertToBitmap(),
                 image_remdisabled.ConvertToBitmap(),
-                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                 pos=(427, 65), size=(36,36)
             )
         button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
@@ -129,7 +129,7 @@ class mainWindow(wx.Frame):
                 image_refup.ConvertToBitmap(),
                 image_refdown.ConvertToBitmap(),
                 image_refdisabled.ConvertToBitmap(),
-                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                 pos=(427, 110), size=(36,36)
             )
         button_ref.Bind(wx.EVT_LEFT_UP, self.RefreshButtonClick)
@@ -145,7 +145,7 @@ class mainWindow(wx.Frame):
                 image_runup.ConvertToBitmap(), 
                 image_rundown.ConvertToBitmap(), 
                 image_rundisabled.ConvertToBitmap(),
-                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                 pos=(427, 450), size=(36,36)
             )
         button_run.Bind(wx.EVT_LEFT_UP, self.RunButtonClick)

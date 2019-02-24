@@ -1,8 +1,5 @@
 import wx
-# Avoid init message from pygame
-import contextlib
-with contextlib.redirect_stdout(None):
-    from pygame import mixer
+from playsound import playsound
 from time import sleep
 
 #====================================================================
@@ -11,19 +8,14 @@ class ShapedButton(wx.Control):
   def __init__(self, parent, image_normal, image_pressed=None, image_disabled=None, image_hover=None,
                audio_click=None, audio_enter=None, audio_leave=None,
                pos=wx.DefaultPosition, size=wx.DefaultSize):
-    # Only load the pygame library if necessary
-    if audio_click or audio_enter or audio_leave:
-      from pygame import mixer
-      mixer.pre_init(44100, -16, 2, 350)
-      mixer.init();
     super(ShapedButton, self).__init__(parent, -1, style=wx.BORDER_NONE)
     self.image_normal = image_normal
     self.image_pressed = image_pressed
     self.image_disabled = image_disabled
     self.image_hover = image_hover
-    self.audio_click = mixer.Sound(audio_click) if audio_click else None
-    self.audio_enter = mixer.Sound(audio_enter) if audio_enter else None
-    self.audio_leave = mixer.Sound(audio_leave) if audio_leave else None
+    self.audio_click = audio_click
+    self.audio_enter = audio_enter
+    self.audio_leave = audio_leave
     self.region = wx.Region(image_normal, wx.Colour(0, 0, 0, 0))
     self._clicked = False
     self._inside = False
@@ -110,7 +102,7 @@ class ShapedButton(wx.Control):
     if self.region.Contains(x, y):
       self.clicked = True
       if self.audio_click:
-        self.audio_click.play();
+        playsound(self.audio_click)
       event.Skip()
 
   #----------------------------------------------------------
@@ -137,7 +129,7 @@ class ShapedButton(wx.Control):
   #----------------------------------------------------------
   def on_enter_window(self, event):
     if self.audio_enter:
-      self.audio_enter.play();
+      playsound(self.audio_enter)
     self.clicked = False
     self.inside = True
     event.Skip()
@@ -147,5 +139,5 @@ class ShapedButton(wx.Control):
     self.clicked = False
     self.inside = False
     if self.audio_leave:
-      self.audio_leave.play();
+      playsound(self.audio_leave)
     event.Skip()

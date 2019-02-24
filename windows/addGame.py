@@ -169,7 +169,7 @@ class addGame(wx.Dialog):
                     image_addup.ConvertToBitmap(), 
                     image_adddown.ConvertToBitmap(), 
                     image_adddisabled.ConvertToBitmap(),
-                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                     pos=(6, 312), size=(36,36)
                 )
             button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
@@ -184,7 +184,7 @@ class addGame(wx.Dialog):
                     image_remup.ConvertToBitmap(), 
                     image_remdown.ConvertToBitmap(), 
                     image_remdisabled.ConvertToBitmap(),
-                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
+                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
                     pos=(48, 312), size=(36,36)
                 )
             button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
