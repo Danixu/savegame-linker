@@ -15,7 +15,6 @@ import logging
 import json
 import base64
 from PIL import Image
-from io import BytesIO
 from sqlite3 import Binary
 
 ### Log Configuration ###

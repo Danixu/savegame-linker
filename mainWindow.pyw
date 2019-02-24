@@ -6,14 +6,12 @@
 @autor: Daniel Carrasco
 '''
 
-from pathlib import Path
 import ctypes
 import globals
 import logging
 from io import BytesIO
 from PIL import Image
 import platform
-import shlex
 import subprocess
 import sys
 from widgets.CheckListCtrl import CheckListCtrl
@@ -280,6 +278,12 @@ class mainWindow(wx.Frame):
                                     "el enlace: {} -> {}".format(dst, src)
                                 )
                             dlg.ShowModal()
+                            
+                wx.MessageBox(
+                    "Se ha terminado de crear los enlaces simbólicos.",
+                    "Terminado",
+                    style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
+                )
  
         event.Skip()
         

@@ -9,7 +9,6 @@ import wx
 from widgets.ShapedButton import ShapedButton
 import sys
 import os
-from pathlib import Path
 import globals
 import logging
 

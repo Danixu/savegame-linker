@@ -2,17 +2,17 @@
 import sys, os
 from cx_Freeze import setup, Executable
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 include_files = ['images', 'audio']
 excludes = ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml", "pkg_resources"]
-packages = ["widgets", "windows", "ctypes", "json", "logging", "PIL", "pygame", "sqlite3", "urllib", "wx", "importlib", "encodings", "collections"]
+packages = ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "PIL", "platform", "pygame", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "wx"]
 
 setup (
-  name = "appname",
-  description='App Description',
+  name = "Savegame Linker",
+  description='Program that allow you to keep all saves in one folder using symlinks.',
   version=__version__,
   options = {
     'build_exe': {

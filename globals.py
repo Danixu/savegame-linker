@@ -6,9 +6,7 @@ from PIL import Image
 import datetime
 import logging
 import os
-import shutil
 import subprocess
-from pathlib import Path
 import sqlite3
 import sys
 import wx
@@ -19,9 +17,8 @@ def init():
 
         global dataFolder
         dataFolder = {
-            "images": Path("images/"),
-            "audio": Path("audio/"),
-            "icons": Path("data/icons/"),
+            "images": "images/",
+            "audio": "audio/",
         }
         
         global rootPath
@@ -199,28 +196,36 @@ def makeSymbolicLink(src, dst):
     log = logging.getLogger("SavegameLinker")
     log.info("Creating symlink...")
     try:
-        # Check if is a synlink
-        child = subprocess.Popen(
-            "fsutil reparsepoint query \"{}\"".format(src),
-            stdout=subprocess.PIPE
-        )
-        streamdata = child.communicate()[0]
-        rc = child.returncode
-        if rc == 0:
-            # If is a symlink, just remove it
-            #shutil.rmtree(src)
-            os.rmdir(src)
-        else:
-            # If not, rename the folder
-            now = datetime.date.today().strftime("%Y%m%d_%H%M%S")
-            newName = "{}-{}".format(src, now)
-            os.rename(src, newName)
-            
-            
-        #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
-        subprocess.check_call(
-                'mklink /J "{}" "{}"'.format(src, dst), shell=True
+        if os.path.isdir(src):
+            # Check if is a symlink
+            child = subprocess.Popen(
+                "fsutil reparsepoint query \"{}\"".format(src),
+                stdout=subprocess.PIPE,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
+            streamdata = child.communicate()[0]
+            rc = child.returncode
+            if rc == 0:
+                # If is a symlink, just remove it
+                os.rmdir(src)
+            else:
+                # If not, rename the folder
+                now = datetime.date.today().strftime("%Y%m%d_%H%M%S")
+                newName = "{}-{}".format(src, now)
+                os.rename(src, newName)
+            
+            child.close()
+
+        #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
+        # Check if is a symlink. Needs shell=True or will fail
+        child = subprocess.Popen(
+            'mklink /J "{}" "{}"'.format(src, dst),
+            creationflags=subprocess.CREATE_NO_WINDOW
+            shell=True
+        )
+        child.communicate()
+        child.close()
+
         return True
             
     except Exception as e:
