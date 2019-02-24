@@ -1,5 +1,8 @@
 import wx
-from pygame import mixer
+# Avoid init message from pygame
+import contextlib
+with contextlib.redirect_stdout(None):
+    from pygame import mixer
 from time import sleep
 
 #====================================================================
