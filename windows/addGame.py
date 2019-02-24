@@ -236,6 +236,7 @@ class addGame(wx.Dialog):
         def SelectIconButton(self, event):
             with wx.FileDialog(self, "Abrir Imagen", 
                     wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
+                    defaultDir=globals.options.get('lastDirIcon' ""), 
                     style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_PREVIEW) as fileDialog:
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
                     event.Skip()
@@ -253,12 +254,18 @@ class addGame(wx.Dialog):
                 image = wx.Image(width, height, im2.tobytes())
                 self.iconImage.SetBitmap(image.ConvertToBitmap())
                 self.iconImage.Refresh()
+                globals.saveOption(
+                    'lastDirIcon',
+                    os.path.dirname(fileDialog.GetPath())
+                )
+                
             event.Skip()
         
         ## Función añadir carpeta ##
         def AddButtonClick(self, event):
             while True:
                 with wx.DirDialog(None, "Choose a directory:",
+                        defaultPath=globals.options.get('lastDirSaves' ""),
                         style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
                     if folderDialog.ShowModal() == wx.ID_OK:
                         if folderDialog.GetPath() not in self.get_list_data():
@@ -269,12 +276,18 @@ class addGame(wx.Dialog):
                                 fdname = os.path.basename(folderDialog.GetPath())
                                 self.textBox1.SetValue(fdname)
                                 self.textBox3.SetValue(fdname)
+                                
+                            globals.saveOption(
+                                'lastDirSaves',
+                                os.path.dirname(folderDialog.GetPath())
+                            )
+                            
                             break
                         else:
                             wx.MessageBox(
-                                    'La carpeta seleccionada ya está en la lista', 
-                                    'Aviso', wx.OK | wx.ICON_WARNING
-                                )
+                                'La carpeta seleccionada ya está en la lista', 
+                                'Aviso', wx.OK | wx.ICON_WARNING
+                            )
                     else:
                         break
                         
@@ -298,9 +311,9 @@ class addGame(wx.Dialog):
             selected = self.folderList.GetSelectedItemCount()
             if selected == 0:
                 wx.MessageBox(
-                        'Tienes que seleccionar al menos un item de la lista.', 
-                        'Aviso', wx.OK | wx.ICON_WARNING
-                    )
+                    'Tienes que seleccionar al menos un item de la lista.', 
+                    'Aviso', wx.OK | wx.ICON_WARNING
+                )
                 return
             else:
                 item_list = []
@@ -308,7 +321,7 @@ class addGame(wx.Dialog):
                 while True:
                     next = self.folderList.GetNextSelected(current)
                     if next == -1:
-                            break
+                        break
 
                     item_list.append(next)
                     current = next
@@ -346,22 +359,22 @@ class addGame(wx.Dialog):
                     folderName.replace(" ", "") == "" or
                     len(folders) == 0):
                 wx.MessageBox(
-                        "Todos los campos salvo el icono, son necesarios",
-                        "Error",
-                        style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP
-                    )
+                    "Todos los campos salvo el icono, son necesarios",
+                    "Error",
+                    style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP
+                )
 
             # Create saves folder
             if not os.path.isdir(
-                        os.path.join(
-                            globals.fullPath(globals.options['savesFolder']),
-                            folderName
-                        ) 
-                    ) and not self.mainWindow.genJson:
-                os.makedirs(os.path.join(
+                    os.path.join(
                         globals.fullPath(globals.options['savesFolder']),
                         folderName
-                    ))
+                    ) 
+                ) and not self.mainWindow.genJson:
+                os.makedirs(os.path.join(
+                    globals.fullPath(globals.options['savesFolder']),
+                    folderName
+                ))
             
             # Create a dictionary with sources and destinations
             actual = 0
@@ -414,26 +427,26 @@ class addGame(wx.Dialog):
                         "({}, {}, {});".format(title, folderName, icon_data)
                     )
                 c.execute(
-                        "INSERT INTO Games (name, folder, icon) VALUES " +
-                        "(?, ?, ?);", (title, folderName, 
-                        Binary(icon_data.getvalue()) if icon_data else None)
-                    )
+                    "INSERT INTO Games (name, folder, icon) VALUES " +
+                    "(?, ?, ?);", (title, folderName, 
+                    Binary(icon_data.getvalue()) if icon_data else None)
+                )
                 if icon_data:
                     icon_data.close()
                 rowid = c.lastrowid
                 c.execute(
-                        "SELECT id FROM Games WHERE rowid = ?", (rowid,)
-                    )
+                    "SELECT id FROM Games WHERE rowid = ?", (rowid,)
+                )
                 game_id = c.fetchone()[0]
                 
                 for src, dst in foldersData.items():
                     log.debug("INSERT INTO Saves (game_id, source, destination) VALUES " +
-                            "({}, {}, {});".format(game_id, dst, globals.folderToWindowsVariable(src))
-                        )
+                        "({}, {}, {});".format(game_id, dst, globals.folderToWindowsVariable(src))
+                    )
                     c.execute(
-                            "INSERT INTO Saves (game_id, source, destination) VALUES " +
-                            "(?, ?, ?);", (game_id, dst, globals.folderToWindowsVariable(src))
-                        )
+                        "INSERT INTO Saves (game_id, source, destination) VALUES " +
+                        "(?, ?, ?);", (game_id, dst, globals.folderToWindowsVariable(src))
+                    )
                 c.close()
                 
                 # If move files and create symlink are checked, then do it
@@ -447,6 +460,7 @@ class addGame(wx.Dialog):
 
                 globals.saveOption('moveOnAdd', moveFiles)
                 globals.saveOption('linkOnAdd', createSymbolic)
+                globals.saveOption('generateJson', generateJson)
                 # If everything was fine, we commit the data to DB
                 globals.db_savedata.commit()
                 

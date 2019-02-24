@@ -39,6 +39,8 @@ def init():
             "logLevel": logging.INFO,
             "logFile": "mainWindow.log",
             "savesFolder": "Saves",
+            "lastDirIcon": "",
+            "lastDirSaves": "",
             "moveOnAdd": False,
             "linkOnAdd": True,
             "generateJson": True
@@ -141,11 +143,11 @@ def strToValue(str, kind):
     return str
 
         
-def saveOption(key, value):
+def saveOption(key, value, keyType=None):
     c = db_savedata.cursor()
     options[key] = value
     query = "INSERT OR REPLACE INTO Config VALUES (?,?,?);"
-    c.execute(query, (key, type(value).__name__, str(value).lower()))
+    c.execute(query, (key, keyType or type(value).__name__, str(value).lower()))
     c.close()
     db_savedata.commit()
 
