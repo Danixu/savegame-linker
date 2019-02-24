@@ -63,8 +63,8 @@ class addGame(wx.Dialog):
         # Creamos el Notebook con las páginas
         self.notebook = wx.Notebook(self.panel)
      
-        searchpage = self._searchPage(self.notebook, self)
-        self.notebook.AddPage(searchpage, "Buscar Juegos")
+        #searchpage = self._searchPage(self.notebook, self)
+        #self.notebook.AddPage(searchpage, "Buscar Juegos")
 
         addpage = self._addPage(self.notebook, self)
         self.notebook.AddPage(addpage, "Añadir manualmente")
@@ -110,11 +110,11 @@ class addGame(wx.Dialog):
                     name=wx.StaticTextNameStr)
             text1.SetFont(globals.labelFormat)
             text1.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text1_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
-                    pos=(280, 5), size=wx.DefaultSize, style=0,
-                    name=wx.StaticTextNameStr)
-            self.text1_warn.SetFont(globals.labelFormat)
-            self.text1_warn.SetForegroundColour(wx.Colour(255, 0, 0))
+            # self.text1_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
+                    # pos=(280, 5), size=wx.DefaultSize, style=0,
+                    # name=wx.StaticTextNameStr)
+            # self.text1_warn.SetFont(globals.labelFormat)
+            # self.text1_warn.SetForegroundColour(wx.Colour(255, 0, 0))
             self.textBox1 = wx.TextCtrl(self, -1, "", (6, 23), (348, 20),
                     wx.BORDER_STATIC|wx.TE_LEFT)
             self.textBox1.SetFont(globals.textBoxFormat)
@@ -127,11 +127,11 @@ class addGame(wx.Dialog):
                     name=wx.StaticTextNameStr)
             text4.SetFont(globals.labelFormat)
             text4.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text4_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
-                    pos=(280, 47), size=wx.DefaultSize, style=0,
-                    name=wx.StaticTextNameStr)
-            self.text4_warn.SetFont(globals.labelFormat)
-            self.text4_warn.SetForegroundColour(wx.Colour(255, 0, 0))
+            # self.text4_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
+                    # pos=(280, 47), size=wx.DefaultSize, style=0,
+                    # name=wx.StaticTextNameStr)
+            # self.text4_warn.SetFont(globals.labelFormat)
+            # self.text4_warn.SetForegroundColour(wx.Colour(255, 0, 0))
             self.textBox3 = wx.TextCtrl(self, -1, "", (6, 67), (348, 20),
                     wx.BORDER_STATIC|wx.TE_LEFT)
             self.textBox3.SetFont(globals.textBoxFormat)
@@ -149,11 +149,11 @@ class addGame(wx.Dialog):
                     name=wx.StaticTextNameStr)
             text3.SetFont(globals.labelFormat)
             text3.SetForegroundColour(wx.Colour(0, 51, 153))
-            self.text3_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
-                    pos=(280, 90), size=wx.DefaultSize, style=0,
-                    name=wx.StaticTextNameStr)
-            self.text3_warn.SetFont(globals.labelFormat)
-            self.text3_warn.SetForegroundColour(wx.Colour(255, 0, 0))
+            # self.text3_warn = wx.StaticText(self, id=wx.ID_ANY, label="No",
+                    # pos=(280, 90), size=wx.DefaultSize, style=0,
+                    # name=wx.StaticTextNameStr)
+            # self.text3_warn.SetFont(globals.labelFormat)
+            # self.text3_warn.SetForegroundColour(wx.Colour(255, 0, 0))
             self.folderList = wx.ListCtrl(self, id=wx.ID_ANY, pos=(6, 108), 
                     size=(450,200), style=wx.LC_REPORT | wx.BORDER_STATIC | wx.LC_NO_HEADER, 
                     validator=wx.DefaultValidator, name=wx.ListCtrlNameStr)
@@ -292,14 +292,14 @@ class addGame(wx.Dialog):
                         break
                         
             if self.folderList.GetItemCount() > 0:
-                self.text3_warn.Hide()
+                # self.text3_warn.Hide()
                 self.folderList.SetBackgroundColour(wx.Colour(255, 255, 255))
                 self.folderList.Refresh()
                 self._hasFolders = True
                 if self._hasFolders and self._hasName and self._hasOutput:
                     self.btnAceptar.Enable()
             else:
-                self.text3_warn.Show()
+                # self.text3_warn.Show()
                 self.folderList.SetBackgroundColour(wx.Colour(255, 150, 150))
                 self.folderList.Refresh()
                 self._hasFolders = False
@@ -329,14 +329,14 @@ class addGame(wx.Dialog):
                 for item in reversed(item_list):
                     self.folderList.DeleteItem(item)
             if self.folderList.GetItemCount() > 0:
-                self.text3_warn.Hide()
+                # self.text3_warn.Hide()
                 self.folderList.SetBackgroundColour(wx.Colour(255, 255, 255))
                 self.folderList.Refresh()
                 self._hasFolders = True
                 if self._hasFolders and self._hasName and self._hasOutput:
                     self.btnAceptar.Enable()
             else:
-                self.text3_warn.Show()
+                # self.text3_warn.Show()
                 self.folderList.SetBackgroundColour(wx.Colour(255, 150, 150))
                 self.folderList.Refresh()
                 self._hasFolders = False
@@ -497,22 +497,22 @@ class addGame(wx.Dialog):
                         temp.close()
                     
                     if self.mainWindow.genJson or not found or found[0] == 0:
-                        self.text1_warn.Hide()
+                        # self.text1_warn.Hide()
                         textBox.SetBackgroundColour(wx.Colour(255, 255, 255))
                         textBox.Refresh()
                         self._hasName = True
                         if self._hasFolders and self._hasName and self._hasOutput:
                             self.btnAceptar.Enable()
                     else:
-                        self.text1_warn.SetLabel("El título ya existe")
-                        self.text1_warn.Show()
+                        # self.text1_warn.SetLabel("El título ya existe")
+                        # self.text1_warn.Show()
                         textBox.SetBackgroundColour(wx.Colour(255, 150, 150))
                         textBox.Refresh()
                         self._hasName = False
                         self.btnAceptar.Disable()
                 else:
-                    self.text1_warn.SetLabel("No puede estar vacío")
-                    self.text1_warn.Show()
+                    # self.text1_warn.SetLabel("No puede estar vacío")
+                    # self.text1_warn.Show()
                     textBox.SetBackgroundColour(wx.Colour(255, 150, 150))
                     textBox.Refresh()
                     self._hasName = False
@@ -525,22 +525,22 @@ class addGame(wx.Dialog):
                         textBoxText
                     )
                     if self.mainWindow.genJson or not os.path.isdir(fName):
-                        self.text4_warn.Hide()
+                        # self.text4_warn.Hide()
                         textBox.SetBackgroundColour(wx.Colour(255, 255, 255))
                         textBox.Refresh()
                         self._hasOutput = True
                         if self._hasFolders and self._hasName and self._hasOutput:
                             self.btnAceptar.Enable()
                     else:
-                        self.text4_warn.SetLabel("La carpeta ya existe")
-                        self.text4_warn.Show()
+                        # self.text4_warn.SetLabel("La carpeta ya existe")
+                        # self.text4_warn.Show()
                         textBox.SetBackgroundColour(wx.Colour(255, 150, 150))
                         textBox.Refresh()
                         self._hasOutput = False
                         self.btnAceptar.Disable()
                 else:
-                    self.text4_warn.SetLabel("No puede estar vacío")
-                    self.text4_warn.Show()
+                    # self.text4_warn.SetLabel("No puede estar vacío")
+                    # self.text4_warn.Show()
                     textBox.SetBackgroundColour(wx.Colour(255, 150, 150))
                     textBox.Refresh()
                     self._hasOutput = False

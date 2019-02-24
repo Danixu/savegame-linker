@@ -163,13 +163,21 @@ class mainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.exitGUI, id=10)
         
         # Menu Edit
-        mEdit = wx.Menu()
-        qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
-        image = wx.Image(str(globals.dataFolder["images"] / 'options.png'),wx.BITMAP_TYPE_PNG)
+        # mEdit = wx.Menu()
+        # qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
+        # image = wx.Image(str(globals.dataFolder["images"] / 'options.png'),wx.BITMAP_TYPE_PNG)
+        # image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
+        # qmi.SetBitmap(image.ConvertToBitmap())
+        # mEdit.Append(qmi)
+        
+        qmi = wx.MenuItem(mEdit, 21, 'Crear JSON de &Save')
+        image = wx.Image(str(globals.dataFolder["images"] / 'generate.png'),wx.BITMAP_TYPE_PNG)
         image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         qmi.SetBitmap(image.ConvertToBitmap())
         mEdit.Append(qmi)
-        self.Bind(wx.EVT_MENU, self.MenuOptions, id=20)
+        
+        # self.Bind(wx.EVT_MENU, self.MenuOptions, id=20)
+        self.Bind(wx.EVT_MENU, self.MenuGenerateJson, id=21)
         
         # Menu bar
         log.debug("Adding menu bar")
@@ -345,21 +353,28 @@ class mainWindow(wx.Frame):
 
         print("despues de spawn")
         event.Skip()
+        
+    def MenuGenerateJson(self, event):
+        log.debug("Clicked 'Generate Json' menu")
+        # Show add game page
+        AddGame = addGame(self, genJson=True)
+        AddGame.ShowModal()
+        
  
  
 #======================
 # Start GUI
 #======================
-""" If simlink fails, run as admin (on Windows 10 works without admin)
+# Symlink needs admin rights on some Windows versions.
+# On Windows 10 is not necessary, but Windows 8 is untested by now
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
         
-if not is_admin():
+if sys.getwindowsversion().major < 10 and not is_admin():
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
-"""
 
 mainWindow().Show()
 app.MainLoop()

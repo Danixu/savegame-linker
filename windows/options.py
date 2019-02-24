@@ -51,8 +51,8 @@ class options(wx.Dialog):
         # Creamos el Notebook con las páginas
         self.notebook = wx.Notebook(self.panel)
      
-        searchpage = self._global(self.notebook, self)
-        self.notebook.AddPage(searchpage, "Globales")
+        #searchpage = self._global(self.notebook, self)
+        #self.notebook.AddPage(searchpage, "Globales")
 
         addpage = self._logging(self.notebook, self)
         self.notebook.AddPage(addpage, "Logging")
@@ -141,7 +141,8 @@ class options(wx.Dialog):
             # Set values on widgets
             self.textBox2.SetValue(globals.options['logFile'])
             
-            found = logLevel.FindString(globals.options['logLevel'])
+            #found = logLevel.FindString(globals.options['logLevel'])
+            found = 5 - int(globals.options['logLevel']/10)
             logLevel.SetSelection(found)
             
             # Accept/Cancel buttons
