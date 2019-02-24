@@ -12,6 +12,7 @@ import globals
 import logging
 from io import BytesIO
 from PIL import Image
+import platform
 import shlex
 import subprocess
 import sys
@@ -163,7 +164,7 @@ class mainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.exitGUI, id=10)
         
         # Menu Edit
-        # mEdit = wx.Menu()
+        mEdit = wx.Menu()
         # qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
         # image = wx.Image(str(globals.dataFolder["images"] / 'options.png'),wx.BITMAP_TYPE_PNG)
         # image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
@@ -367,14 +368,25 @@ class mainWindow(wx.Frame):
 #======================
 # Symlink needs admin rights on some Windows versions.
 # On Windows 10 is not necessary, but Windows 8 is untested by now
+# sys.getwindowsversion() fails when is compiled to exe and detects version 6
 def is_admin():
     try:
         return ctypes.windll.shell32.IsUserAnAdmin()
     except:
         return False
-        
-if sys.getwindowsversion().major < 10 and not is_admin():
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
 
-mainWindow().Show()
-app.MainLoop()
+winVer = platform.platform(terse=True)
+runAsAdmin = is_admin()
+log.info("Windows version: {}".format(winVer))
+log.info("Run as admin: {}".format(runAsAdmin))
+if not winVer in ["Windows-10"] and not runAsAdmin:
+    if getattr(sys, 'frozen', False):
+        # The application is frozen
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, sys.executable, None, 1)
+    else:
+        # The application is not frozen
+        # Change this bit to match where you store your data files:
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+else:
+    mainWindow().Show()
+    app.MainLoop()
