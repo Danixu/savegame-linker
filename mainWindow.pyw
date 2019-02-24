@@ -11,6 +11,7 @@ import globals
 import logging
 from io import BytesIO
 from PIL import Image
+import os
 import platform
 import subprocess
 import sys
@@ -64,7 +65,7 @@ class mainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.exitGUI)
 
         # Changing the icon
-        icon = wx.Icon(str(globals.dataFolder["images"] / 'icons.ico'), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(os.path.join(globals.dataFolder["images"], 'icons.ico'), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
         # Creating panel
@@ -87,67 +88,67 @@ class mainWindow(wx.Frame):
         #=== Buttons ===#
         # Add #
         log.debug("Adding 'Add' button")
-        image_addup = wx.Image(str(globals.dataFolder["images"] / 'add_up.png'),
+        image_addup = wx.Image(os.path.join(globals.dataFolder["images"], 'add_up.png'),
                 wx.BITMAP_TYPE_ANY )
-        image_adddown = wx.Image(str(globals.dataFolder["images"] / 'add_down.png'),
+        image_adddown = wx.Image(os.path.join(globals.dataFolder["images"], 'add_down.png'),
                 wx.BITMAP_TYPE_ANY )
         image_adddisabled = image_addup.ConvertToDisabled(70)
         button_add = ShapedButton(self.panel,
                 image_addup.ConvertToBitmap(),
                 image_adddown.ConvertToBitmap(),
                 image_adddisabled.ConvertToBitmap(),
-                audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                 pos=(427, 20), size=(36,36)
             )
         button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
         
         # Remove #
         log.debug("Adding 'Remove' button")
-        image_remup = wx.Image(str(globals.dataFolder["images"] / 'remove_up.png'),
+        image_remup = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_up.png'),
                 wx.BITMAP_TYPE_ANY )
-        image_remdown = wx.Image(str(globals.dataFolder["images"] / 'remove_down.png'),
+        image_remdown = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_down.png'),
                 wx.BITMAP_TYPE_ANY )
         image_remdisabled = image_remup.ConvertToDisabled(70)
         button_rem = ShapedButton(self.panel,
                 image_remup.ConvertToBitmap(),
                 image_remdown.ConvertToBitmap(),
                 image_remdisabled.ConvertToBitmap(),
-                audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                 pos=(427, 65), size=(36,36)
             )
         button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
         
         # Refresh #
         log.debug("Adding 'Refresh' button")
-        image_refup = wx.Image(str(globals.dataFolder["images"] / 'refresh_up.png'),
+        image_refup = wx.Image(os.path.join(globals.dataFolder["images"], 'refresh_up.png'),
                 wx.BITMAP_TYPE_ANY )
-        image_refdown = wx.Image(str(globals.dataFolder["images"] / 'refresh_down.png'),
+        image_refdown = wx.Image(os.path.join(globals.dataFolder["images"], 'refresh_down.png'),
                 wx.BITMAP_TYPE_ANY )
         image_refdisabled = image_refup.ConvertToDisabled(70)
         button_ref = ShapedButton(self.panel,
                 image_refup.ConvertToBitmap(),
                 image_refdown.ConvertToBitmap(),
                 image_refdisabled.ConvertToBitmap(),
-                audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                 pos=(427, 110), size=(36,36)
             )
         button_ref.Bind(wx.EVT_LEFT_UP, self.RefreshButtonClick)
         
         # Run #
         log.debug("Adding 'Run' button")
-        image_runup = wx.Image(str(globals.dataFolder["images"] / 'run_up.png'),
+        image_runup = wx.Image(os.path.join(globals.dataFolder["images"], 'run_up.png'),
                 wx.BITMAP_TYPE_ANY )
-        image_rundown = wx.Image(str(globals.dataFolder["images"] / 'run_down.png'),
+        image_rundown = wx.Image(os.path.join(globals.dataFolder["images"], 'run_down.png'),
                 wx.BITMAP_TYPE_ANY )
         image_rundisabled = image_runup.ConvertToDisabled(70)
         button_run = ShapedButton(self.panel, 
                 image_runup.ConvertToBitmap(), 
                 image_rundown.ConvertToBitmap(), 
                 image_rundisabled.ConvertToBitmap(),
-                audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                 pos=(427, 450), size=(36,36)
             )
-        button_run.Bind(wx.EVT_LEFT_UP, self.RunButtonClick)    
+        button_run.Bind(wx.EVT_LEFT_UP, self.RunButtonClick)
 
         #=== Menu ===#
         log.debug("Creating main menu")
@@ -155,7 +156,7 @@ class mainWindow(wx.Frame):
         # Menu File
         mFile = wx.Menu()
         qmi = wx.MenuItem(mFile, 10, '&Salir\tCtrl+Q')
-        image = wx.Image(str(globals.dataFolder["images"] / 'exit.png'),wx.BITMAP_TYPE_PNG)
+        image = wx.Image(os.path.join(globals.dataFolder["images"], 'exit.png'),wx.BITMAP_TYPE_PNG)
         image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         qmi.SetBitmap(image.ConvertToBitmap())
         mFile.Append(qmi)
@@ -164,13 +165,13 @@ class mainWindow(wx.Frame):
         # Menu Edit
         mEdit = wx.Menu()
         # qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
-        # image = wx.Image(str(globals.dataFolder["images"] / 'options.png'),wx.BITMAP_TYPE_PNG)
+        # image = wx.Image(os.path.join(globals.dataFolder["images"], 'options.png'),wx.BITMAP_TYPE_PNG)
         # image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         # qmi.SetBitmap(image.ConvertToBitmap())
         # mEdit.Append(qmi)
         
         qmi = wx.MenuItem(mEdit, 21, 'Crear JSON de &Save')
-        image = wx.Image(str(globals.dataFolder["images"] / 'generate.png'),wx.BITMAP_TYPE_PNG)
+        image = wx.Image(os.path.join(globals.dataFolder["images"], 'generate.png'),wx.BITMAP_TYPE_PNG)
         image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         qmi.SetBitmap(image.ConvertToBitmap())
         mEdit.Append(qmi)
@@ -302,13 +303,13 @@ class mainWindow(wx.Frame):
         self.itemList.SetImageList(self.il, wx.IMAGE_LIST_SMALL)
         
         log.debug("Adding tick icons")
-        image = wx.Image(str(globals.dataFolder["images"] / "tick_1.png"), wx.BITMAP_TYPE_ANY)
+        image = wx.Image(os.path.join(globals.dataFolder["images"], "tick_1.png"), wx.BITMAP_TYPE_ANY)
         self.il.Add(wx.Bitmap(image))
         
-        image = wx.Image(str(globals.dataFolder["images"] / 'tick_2.png'), wx.BITMAP_TYPE_ANY)
+        image = wx.Image(os.path.join(globals.dataFolder["images"], 'tick_2.png'), wx.BITMAP_TYPE_ANY)
         self.il.Add(wx.Bitmap(image))
         
-        image = wx.Image(str(globals.dataFolder["images"] / 'no_image_small.png'), wx.BITMAP_TYPE_ANY)
+        image = wx.Image(os.path.join(globals.dataFolder["images"], 'no_image_small.png'), wx.BITMAP_TYPE_ANY)
         self.il.Add(wx.Bitmap(image))
 
         log.info("Cleaning the list")

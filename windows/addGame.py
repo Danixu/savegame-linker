@@ -49,7 +49,7 @@ class addGame(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.exitGUI)
         
         # Cambiamos el icono
-        icon = wx.Icon(str(globals.dataFolder["images"] / 'icons.ico'), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(os.path.join(globals.dataFolder["images"], 'icons.ico'), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
         # Creamos el panel
@@ -137,7 +137,7 @@ class addGame(wx.Dialog):
             self.textBox3.SetBackgroundColour(wx.Colour(255, 150, 150))
             
             ### Icon ###
-            image_iconup = wx.Image(str(globals.dataFolder["images"] / 'no_image_big.png'),
+            image_iconup = wx.Image(os.path.join(globals.dataFolder["images"], 'no_image_big.png'),
                      wx.BITMAP_TYPE_ANY )
             self.iconImage = wx.StaticBitmap(self, -1, image_iconup.ConvertToBitmap(), (361, 6), (95, 95), style=wx.BORDER_THEME)
             self.iconImage.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
@@ -160,31 +160,31 @@ class addGame(wx.Dialog):
             self.folderList.SetBackgroundColour(wx.Colour(255, 150, 150))
              
             ### Add Button ###
-            image_addup = wx.Image(str(globals.dataFolder["images"] / 'add_up.png'),
+            image_addup = wx.Image(os.path.join(globals.dataFolder["images"], 'add_up.png'),
                     wx.BITMAP_TYPE_ANY )
-            image_adddown = wx.Image(str(globals.dataFolder["images"] / 'add_down.png'),
+            image_adddown = wx.Image(os.path.join(globals.dataFolder["images"], 'add_down.png'),
                     wx.BITMAP_TYPE_ANY )
             image_adddisabled = image_addup.ConvertToDisabled(70)
             button_add = ShapedButton(self, 
                     image_addup.ConvertToBitmap(), 
                     image_adddown.ConvertToBitmap(), 
                     image_adddisabled.ConvertToBitmap(),
-                    audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                     pos=(6, 312), size=(36,36)
                 )
             button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
             
             ### Remove Button ###
-            image_remup = wx.Image(str(globals.dataFolder["images"] / 'remove_up.png'),
+            image_remup = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_up.png'),
                     wx.BITMAP_TYPE_ANY )
-            image_remdown = wx.Image(str(globals.dataFolder["images"] / 'remove_down.png'),
+            image_remdown = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_down.png'),
                     wx.BITMAP_TYPE_ANY )
             image_remdisabled = image_remup.ConvertToDisabled(70)
             button_rem = ShapedButton(self, 
                     image_remup.ConvertToBitmap(), 
                     image_remdown.ConvertToBitmap(), 
                     image_remdisabled.ConvertToBitmap(),
-                    audio_click=str(globals.dataFolder["audio"] / 'Click1.ogg'),
+                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.ogg'),
                     pos=(48, 312), size=(36,36)
                 )
             button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)

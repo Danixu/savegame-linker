@@ -220,7 +220,7 @@ def makeSymbolicLink(src, dst):
         # Check if is a symlink. Needs shell=True or will fail
         child = subprocess.Popen(
             'mklink /J "{}" "{}"'.format(src, dst),
-            creationflags=subprocess.CREATE_NO_WINDOW
+            creationflags=subprocess.CREATE_NO_WINDOW,
             shell=True
         )
         child.communicate()

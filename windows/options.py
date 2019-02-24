@@ -37,7 +37,7 @@ class options(wx.Dialog):
         self.exit_code = 0
         
         # Cambiamos el icono
-        icon = wx.Icon(str(globals.dataFolder["images"] / 'options.ico'), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(os.path.join(globals.dataFolder["images"], 'options.ico'), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
         # Creamos el panel
@@ -99,11 +99,11 @@ class options(wx.Dialog):
             self.textBox2.SetFont(globals.textBoxFormat)
             self.textBox2.SetBackgroundColour(wx.WHITE)
 
-            image_iconup = wx.Image(str(globals.dataFolder["images"] / 'folder_close.png'),
+            image_iconup = wx.Image(os.path.join(globals.dataFolder["images"], 'folder_close.png'),
                     wx.BITMAP_TYPE_ANY )
-            image_iconover = wx.Image(str(globals.dataFolder["images"] / 'folder_open.png'),
+            image_iconover = wx.Image(os.path.join(globals.dataFolder["images"], 'folder_open.png'),
                     wx.BITMAP_TYPE_ANY )
-            image_icondown = wx.Image(str(globals.dataFolder["images"] / 'folder_click.png'),
+            image_icondown = wx.Image(os.path.join(globals.dataFolder["images"], 'folder_click.png'),
                     wx.BITMAP_TYPE_ANY )
             image_icondisabled = image_iconup.ConvertToDisabled(70)
             button_icon = ShapedButton(self, 
