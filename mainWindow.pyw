@@ -276,7 +276,8 @@ class mainWindow(wx.Frame):
                                     "{} -> {}".format(dst, src)
                                 )
                             dlg = wx.MessageDialog(self, "Ha ocurrido un error creando " +
-                                    "el enlace: {} -> {}".format(dst, src)
+                                    "el enlace: {} -> {}".format(dst, src),
+                                    wx.OK | wx.ICON_WARNING
                                 )
                             dlg.ShowModal()
                             

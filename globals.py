@@ -214,7 +214,6 @@ def makeSymbolicLink(src, dst):
                 newName = "{}-{}".format(src, now)
                 os.rename(src, newName)
             
-            child.close()
 
         #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
         # Check if is a symlink. Needs shell=True or will fail
@@ -224,7 +223,6 @@ def makeSymbolicLink(src, dst):
             shell=True
         )
         child.communicate()
-        child.close()
 
         return True
             
