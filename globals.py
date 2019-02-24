@@ -3,13 +3,39 @@
 # globals.py
 from io import BytesIO
 from PIL import Image
+from collections import OrderedDict
 import datetime
 import logging
 import os
 import subprocess
 import sqlite3
 import sys
+from win32com.shell import shell, shellcon
+from win32api import GetFileAttributes
 import wx
+
+
+## CSIDL Values
+CSIDL_Values = OrderedDict([
+    ('MYDOCUMENTS', 5),
+    ('LOCAL_APPDATA', 28),
+    ('APPDATA', 26),
+    ('DESKTOPDIRECTORY', 16),
+    ('MYMUSIC', 13),
+    ('MYPICTURES', 39),
+    ('MYVIDEO', 14),
+    ('PROFILE', 40),
+    ('COMMON_APPDATA', 35),
+    ('COMMON_DESKTOPDIRECTORY', 25),
+    ('COMMON_DOCUMENTS', 46),
+    ('COMMON_MUSIC', 53),
+    ('COMMON_PICTURES', 54),
+    ('COMMON_VIDEO', 55),
+    ('PROGRAM_FILES_COMMON', 43),
+    ('PROGRAM_FILES_COMMONX86', 44),
+    ('PROGRAM_FILES', 38),
+    ('PROGRAM_FILESX86', 42),
+])
 
 def init():
         global BACKGROUNDCOLOR
@@ -164,14 +190,20 @@ def relativePath(path):
 
         
 def folderToWindowsVariable(folder):
-    for variable in ['USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'Public', 'ALLUSERSPROFILE']:
-        folder = folder.replace(os.environ[variable], "%{}%".format(variable))
+    for variable, value in CSIDL_Values.items():
+        folder = folder.replace(
+            shell.SHGetFolderPath(0, value, None, 0),
+            "%{}%".format(variable)
+        )
     return folder
 
 
 def windowsVariableToFolder(folder):
-    for variable in ['USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'Public', 'ALLUSERSPROFILE']:
-        folder = folder.replace("%{}%".format(variable), os.environ[variable])
+    for variable, value in CSIDL_Values.items():
+        folder = folder.replace(
+            "%{}%".format(variable),
+            shell.SHGetFolderPath(0, value, None, 0)
+        )
         
     return folder
 
@@ -194,26 +226,29 @@ def remove_transparency(im, bg_colour=(255, 255, 255)):
                 
 def makeSymbolicLink(src, dst):
     log = logging.getLogger("SavegameLinker")
-    log.info("Creating symlink...")
+    log.info("Creating symlink: {} -> {}".format(dst, src))
     try:
         if os.path.isdir(src):
+            log.debug("Destination folder exists. Checking if is symlink.")
             # Check if is a symlink
-            child = subprocess.Popen(
-                "fsutil reparsepoint query \"{}\"".format(src),
-                stdout=subprocess.PIPE,
-                creationflags=subprocess.CREATE_NO_WINDOW
-            )
-            streamdata = child.communicate()[0]
-            rc = child.returncode
-            if rc == 0:
+            
+            fileAttr = GetFileAttributes(src)
+            
+            for i in [4194304, 262144, 131072, 65536, 32768, 16384, 8192, 4096, 2048]:
+                if fileAttr > i:
+                    fileAttr -= i
+
+            if fileAttr >= 1024:
+                log.debug("Destination folder is symlink, deleting...")
                 # If is a symlink, just remove it
                 os.rmdir(src)
             else:
+                log.debug("Destination folder is not a symlink, renaming...")
                 # If not, rename the folder
                 now = datetime.date.today().strftime("%Y%m%d_%H%M%S")
                 newName = "{}-{}".format(src, now)
+                log.debug("Renaming {} to {}".format(src, now))
                 os.rename(src, newName)
-            
 
         #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
         # Check if is a symlink. Needs shell=True or will fail
