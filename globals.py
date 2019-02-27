@@ -13,7 +13,7 @@ import sys
 from win32com.shell import shell, shellcon
 from win32api import GetFileAttributes
 import wx
-
+import gettext
 
 ## CSIDL Values
 CSIDL_Values = OrderedDict([
@@ -68,7 +68,7 @@ def init():
             "linkOnAdd": True,
             "generateJson": True
         }
-        
+
         # Formatos
         global labelFormat
         labelFormat = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_SLANT,

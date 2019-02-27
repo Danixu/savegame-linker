@@ -10,6 +10,7 @@ from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 from widgets.ShapedButton import ShapedButton
 import sys
 import os
+import gettext
 import globals
 import logging
 import json
@@ -35,7 +36,7 @@ class addGame(wx.Dialog):
                 self, 
                 parent, 
                 style = wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.FRAME_FLOAT_ON_PARENT, 
-                title="Añadir juego", 
+                title=_("Add Game"), 
                 size=(485,550)
             )
             
@@ -66,7 +67,7 @@ class addGame(wx.Dialog):
         #self.notebook.AddPage(searchpage, "Buscar Juegos")
 
         addpage = self._addPage(self.notebook, self)
-        self.notebook.AddPage(addpage, "Añadir manualmente")
+        self.notebook.AddPage(addpage, _("Add custom save"))
 
         # layout
         boxSizer = wx.BoxSizer()
@@ -82,11 +83,11 @@ class addGame(wx.Dialog):
             self.mainWindow = mainWindow
 
             # Accept/Cancel buttons
-            self.btnAceptar = wx.Button(self, -1, "Aceptar",
+            self.btnAceptar = wx.Button(self, -1, _("Ok"),
                     pos=(150, 410), size=(80,30)
                 )
                 
-            self.btnCancelar = wx.Button(self, -1, "Cancelar",
+            self.btnCancelar = wx.Button(self, -1, _("Cancel"),
                     pos=(236, 410), size=(80,30)
                 )
             self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)
@@ -103,8 +104,8 @@ class addGame(wx.Dialog):
             self._hasOutput = False
             self._gameIcon = None
     
-            ### Grupo Título ###
-            text1 = wx.StaticText(self, id=wx.ID_ANY, label="Título:",
+            ### Title Group ###
+            text1 = wx.StaticText(self, id=wx.ID_ANY, label=_("Title:"),
                     pos=(6, 5), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             text1.SetFont(globals.labelFormat)
@@ -121,7 +122,7 @@ class addGame(wx.Dialog):
             
             ### Grupo nombre de Carpeta ###
             text4 = wx.StaticText(self, id=wx.ID_ANY, 
-                    label="Nombre de carpeta donde guardar:",
+                    label=_("Data directory name:"),
                     pos=(6, 47), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             text4.SetFont(globals.labelFormat)
@@ -143,7 +144,7 @@ class addGame(wx.Dialog):
             self.iconImage.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
             
             ### Grupo Folder List ###
-            text3 = wx.StaticText(self, id=wx.ID_ANY, label="Carpetas a añadir:",
+            text3 = wx.StaticText(self, id=wx.ID_ANY, label=_("Folders to add:"),
                     pos=(6, 90), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             text3.SetFont(globals.labelFormat)
@@ -192,19 +193,19 @@ class addGame(wx.Dialog):
             ### Grupo Checkbox ###
             self.check1 = wx.CheckBox(
                     self, id=wx.ID_ANY, 
-                    label="Mover ficheros a la carpeta del programa",
+                    label=_("Move folders/files to data folder"),
                     pos=(6, 360), size=(250,20)
                 )
             self.check1.SetValue(globals.options['moveOnAdd'])
             self.check2 = wx.CheckBox(
                     self, id=wx.ID_ANY, 
-                    label="Generar enlace simbólico después de mover",
+                    label=_("Create symbolic link to data folder"),
                     pos=(6, 380), size=(250,20)
                 )
             self.check2.SetValue(globals.options['linkOnAdd'])
             self.check3 = wx.CheckBox(
                     self, id=wx.ID_ANY, 
-                    label="Generar fichero json con los datos",
+                    label=_("Generate JSON file with save info"),
                     pos=(6, 400), size=(250,20)
                 )
             self.check3.SetValue(globals.options['generateJson'])
@@ -215,13 +216,13 @@ class addGame(wx.Dialog):
                 self.check2.Disable()
                 self.check3.Disable()
 
-            self.btnAceptar = wx.Button(self, -1, "Aceptar",
+            self.btnAceptar = wx.Button(self, -1, _("Ok"),
                     pos=(150, 440), size=(80,30)
                 )
             self.btnAceptar.Bind(wx.EVT_LEFT_UP, self.addGameToDB)
             if not self.mainWindow.genJson:
                 self.btnAceptar.Disable()
-            self.btnCancelar = wx.Button(self, -1, "Cancelar",
+            self.btnCancelar = wx.Button(self, -1, _("Cancel"),
                     pos=(236, 440), size=(80,30)
                 )
             self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)        
@@ -233,9 +234,10 @@ class addGame(wx.Dialog):
             
         ## Funcíón seleccionar icono ##
         def SelectIconButton(self, event):
-            with wx.FileDialog(self, "Abrir Imagen", 
-                    wildcard="Imágenes|*.bmp;*.png;*.jpg;*.gif;*.ico",
-                    defaultDir=globals.options.get('lastDirIcon' ""), 
+            log.debug("Last icon directory: {}".format(globals.options.get('lastDirIcon', "")))
+            with wx.FileDialog(self, _("Open image"),
+                    globals.options.get('lastDirIcon', ""),
+                    wildcard=_("Images|*.bmp;*.png;*.jpg;*.gif;*.ico"),
                     style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_PREVIEW) as fileDialog:
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
                     event.Skip()
@@ -263,8 +265,8 @@ class addGame(wx.Dialog):
         ## Función añadir carpeta ##
         def AddButtonClick(self, event):
             while True:
-                with wx.DirDialog(None, "Choose a directory:",
-                        defaultPath=globals.options.get('lastDirSaves' ""),
+                with wx.DirDialog(None, _("Choose a directory:"),
+                        defaultPath=globals.options.get('lastDirSaves', ""),
                         style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
                     if folderDialog.ShowModal() == wx.ID_OK:
                         if folderDialog.GetPath() not in self.get_list_data():
@@ -284,8 +286,8 @@ class addGame(wx.Dialog):
                             break
                         else:
                             wx.MessageBox(
-                                'La carpeta seleccionada ya está en la lista', 
-                                'Aviso', wx.OK | wx.ICON_WARNING
+                                _("The selected directory is already on the list"),
+                                _("Notice"), wx.OK | wx.ICON_WARNING
                             )
                     else:
                         break
@@ -310,8 +312,8 @@ class addGame(wx.Dialog):
             selected = self.folderList.GetSelectedItemCount()
             if selected == 0:
                 wx.MessageBox(
-                    'Tienes que seleccionar al menos un item de la lista.', 
-                    'Aviso', wx.OK | wx.ICON_WARNING
+                    _("You must select at least one item from the list"), 
+                    _("Notice"), wx.OK | wx.ICON_WARNING
                 )
                 return
             else:
@@ -358,8 +360,8 @@ class addGame(wx.Dialog):
                     folderName.replace(" ", "") == "" or
                     len(folders) == 0):
                 wx.MessageBox(
-                    "Todos los campos salvo el icono, son necesarios",
-                    "Error",
+                    _("All field less the icon are mandatory."),
+                    _("Error"),
                     style=wx.ICON_ERROR | wx.OK | wx.STAY_ON_TOP
                 )
 
@@ -413,8 +415,8 @@ class addGame(wx.Dialog):
                  
                 if self.mainWindow.genJson:
                     wx.MessageBox(
-                        "Se ha guardado correctamente el fichero JSON.",
-                        "Guardado",
+                        _("JSON file saved correctly."),
+                        _("Saved!"),
                         style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
                     )
             # if Window was not open exclusively to create a Json file
@@ -466,8 +468,8 @@ class addGame(wx.Dialog):
                 # Set the game as added to update on close
                 self.mainWindow.updated = True
                 wx.MessageBox(
-                    "Se ha añadido la entrada correctamente.",
-                    "Correcto",
+                    _("Save/s added correctly."),
+                    _("Finished"),
                     style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
                 )
                 self.mainWindow.exitGUI(0)

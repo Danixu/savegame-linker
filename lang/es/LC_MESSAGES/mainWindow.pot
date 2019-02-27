@@ -1,0 +1,64 @@
+# Savegame Linker - MainWindow.
+# Copyright (C) 2018
+# Daniel Carrasco Marín, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.7\n"
+"POT-Creation-Date: 2019-02-27 23:03+0100\n"
+"PO-Revision-Date: 2019-02-27 23:03+0100\n"
+"Last-Translator: Daniel Carrasco Marín\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Icon"
+msgstr "Icono"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "&Quit\tCtrl+Q"
+msgstr "&Salir\tCtrl+Q"
+
+msgid "Create JSON from &Save"
+msgstr "Crear JSON desde &Save"
+
+msgid "&File"
+msgstr "&Fichero"
+
+msgid "&Edit"
+msgstr "&Editar"
+
+msgid "Notice"
+msgstr "Aviso"
+
+msgid "You must select at least one item from the list."
+msgstr "Debe seleccionar al menos un elemento de la lista."
+
+msgid "Are you sure that want to delete the selected items?"
+msgstr "¿Seguro que desea eliminar los elementos seleccionados?"
+
+msgid "Delete?"
+msgstr "¿Eliminar?"
+
+msgid "There was an error removing data from database."
+msgstr "Ocurrió un error eliminando los datos de la base de datos"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Do you want to create the symbolic links?"
+msgstr "¿Desea crear los enlaces simbólicos?"
+
+msgid "Continue"
+msgstr "Continuar"
+
+msgid "There was an error creating the symbolic link: "
+msgstr "Ocurrió un error creando el enlace simbólico: "
+
+msgid "Symbolic links created successfully."
+msgstr "Enlaces simbólicos creados correctamente."
+
+msgid "Finished"
+msgstr "Finalizado"

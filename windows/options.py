@@ -9,6 +9,7 @@ import wx
 from widgets.ShapedButton import ShapedButton
 import sys
 import os
+import gettext
 import globals
 import logging
 
@@ -71,11 +72,11 @@ class options(wx.Dialog):
             self.mainWindow = mainWindow
 
             # Accept/Cancel buttons
-            self.btnAceptar = wx.Button(self, -1, "Aceptar",
+            self.btnAceptar = wx.Button(self, -1, _("Ok"),
                     pos=(150, 410), size=(80,30)
                 )
                 
-            self.btnCancelar = wx.Button(self, -1, "Cancelar",
+            self.btnCancelar = wx.Button(self, -1, _("Cancel"),
                     pos=(236, 410), size=(80,30)
                 )
             self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)
@@ -88,7 +89,7 @@ class options(wx.Dialog):
             self.mainWindow = mainWindow
 
             ## Log search Button ###
-            text2 = wx.StaticText(self, id=wx.ID_ANY, label="Archivo log:",
+            text2 = wx.StaticText(self, id=wx.ID_ANY, label=_("Log file:"),
                     pos=(6, 5), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             text2.SetFont(globals.labelFormat)
@@ -116,7 +117,7 @@ class options(wx.Dialog):
             button_icon.Bind(wx.EVT_LEFT_UP, self.SelectLogButton)
             
             ## Log Level selector ##
-            text1 = wx.StaticText(self, id=wx.ID_ANY, label="Nivel de log:",
+            text1 = wx.StaticText(self, id=wx.ID_ANY, label=_("Log level:"),
                     pos=(6, 47), size=wx.DefaultSize, style=0,
                     name=wx.StaticTextNameStr)
             text1.SetFont(globals.labelFormat)
@@ -127,11 +128,11 @@ class options(wx.Dialog):
                     pos=(6, 67), size=(450, 30), 
                     style=wx.CB_DROPDOWN | wx.CB_READONLY,
                     choices=[
-                        "CRITICAL",
-                        "ERROR",
-                        "WARNING",
-                        "INFO",
-                        "DEBUG",
+                        _("CRITICAL"),
+                        _("ERROR"),
+                        _("WARNING"),
+                        _("INFO"),
+                        _("DEBUG"),
                         ],
                     validator=wx.DefaultValidator, 
                     name="LogLevel"
@@ -145,18 +146,18 @@ class options(wx.Dialog):
             logLevel.SetSelection(found)
             
             # Accept/Cancel buttons
-            self.btnAceptar = wx.Button(self, -1, "Aceptar",
+            self.btnAceptar = wx.Button(self, -1, _("Ok"),
                     pos=(150, 410), size=(80,30)
                 )
                 
-            self.btnCancelar = wx.Button(self, -1, "Cancelar",
+            self.btnCancelar = wx.Button(self, -1, _("Cancel"),
                     pos=(236, 410), size=(80,30)
                 )
             self.btnCancelar.Bind(wx.EVT_LEFT_UP, self.mainWindow.exitGUI)        
         
         ## Funcíón seleccionar icono ##
         def SelectLogButton(self, event):
-            with wx.FileDialog(self, "Abrir Imagen", wildcard="Ficheros de log|*.log",
+            with wx.FileDialog(self, _("Open log"), wildcard=_("Log files|*.log"),
                     style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
                 if fileDialog.ShowModal() == wx.ID_CANCEL:
                     event.Skip()
@@ -168,7 +169,7 @@ class options(wx.Dialog):
         ## Función añadir carpeta ##
         def AddButtonClick(self, event):
             while True:
-                with wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
+                with wx.DirDialog(None, _("Choose a directory:"),style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON) as folderDialog:
                     if folderDialog.ShowModal() == wx.ID_OK:
                         if folderDialog.GetPath() not in self.get_list_data():
                             self.folderList.InsertItem(sys.maxsize, folderDialog.GetPath())
@@ -179,7 +180,10 @@ class options(wx.Dialog):
                                 self.textBox3.SetValue(fdname)
                             break
                         else:
-                            wx.MessageBox('La carpeta seleccionada ya está en la lista', 'Aviso', wx.OK | wx.ICON_WARNING)
+                            wx.MessageBox(
+                                _("The selected directory is already on the list"),
+                                _('Notice'), wx.OK | wx.ICON_WARNING
+                            )
                     else:
                         break
             event.Skip()
@@ -188,7 +192,10 @@ class options(wx.Dialog):
         def RemButtonClick(self, event):
             selected = self.folderList.GetSelectedItemCount()
             if selected == 0:
-                wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
+                wx.MessageBox(
+                    _("You must select at least one item from the list"),
+                    _('Notice'), wx.OK | wx.ICON_WARNING
+                )
                 return
             else:
                 item_list = []

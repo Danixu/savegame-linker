@@ -7,6 +7,7 @@
 '''
 
 import ctypes
+import gettext
 import globals
 import logging
 from io import BytesIO
@@ -44,6 +45,10 @@ log.debug("Changing log level to {}".format(globals.options['logLevel']))
 log.setLevel(globals.options['logLevel'])
 
 
+es = gettext.translation('mainWindow', localedir='lang', languages=['es'])
+es.install()
+
+
 class mainWindow(wx.Frame):
     ###=== Exit Function ===###
     def exitGUI(self, event):
@@ -79,8 +84,8 @@ class mainWindow(wx.Frame):
         log.debug("Creating item list")
         self.itemList = CheckListCtrl(self.panel)
         self.itemList.InsertColumn(0, '', width=32)
-        self.itemList.InsertColumn(1, 'Icono', width=52)
-        self.itemList.InsertColumn(2, 'Título', width=320)
+        self.itemList.InsertColumn(1, _('Icon'), width=52)
+        self.itemList.InsertColumn(2, _('Title'), width=320)
         
         log.debug("Updating item list")
         self.itemListRefresh()
@@ -155,7 +160,7 @@ class mainWindow(wx.Frame):
         self.CreateStatusBar()
         # Menu File
         mFile = wx.Menu()
-        qmi = wx.MenuItem(mFile, 10, '&Salir\tCtrl+Q')
+        qmi = wx.MenuItem(mFile, 10, _("&Quit\tCtrl+Q"))
         image = wx.Image(os.path.join(globals.dataFolder["images"], 'exit.png'),wx.BITMAP_TYPE_PNG)
         image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         qmi.SetBitmap(image.ConvertToBitmap())
@@ -164,13 +169,13 @@ class mainWindow(wx.Frame):
         
         # Menu Edit
         mEdit = wx.Menu()
-        # qmi = wx.MenuItem(mEdit, 20, '&Opciones\tAlt+F12')
+        # qmi = wx.MenuItem(mEdit, 20, _("&Options\tAlt+F12"))
         # image = wx.Image(os.path.join(globals.dataFolder["images"], 'options.png'),wx.BITMAP_TYPE_PNG)
         # image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         # qmi.SetBitmap(image.ConvertToBitmap())
         # mEdit.Append(qmi)
         
-        qmi = wx.MenuItem(mEdit, 21, 'Crear JSON de &Save')
+        qmi = wx.MenuItem(mEdit, 21, _("Create JSON from &Save"))
         image = wx.Image(os.path.join(globals.dataFolder["images"], 'generate.png'),wx.BITMAP_TYPE_PNG)
         image = image.Scale(16, 16, wx.IMAGE_QUALITY_HIGH)
         qmi.SetBitmap(image.ConvertToBitmap())
@@ -182,8 +187,8 @@ class mainWindow(wx.Frame):
         # Menu bar
         log.debug("Adding menu bar")
         menuBar = wx.MenuBar()
-        menuBar.Append(mFile, "&Archivo")
-        menuBar.Append(mEdit, "&Edición")
+        menuBar.Append(mFile, _("&File"))
+        menuBar.Append(mEdit, _("&Edit"))
         self.SetMenuBar(menuBar)
      
     
@@ -212,11 +217,11 @@ class mainWindow(wx.Frame):
                 toRemove.append(index)
         
         if len(toRemove) == 0:
-            wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
+            wx.MessageBox(_("You must select at least one item from the list."), _("Notice"), wx.OK | wx.ICON_WARNING)
             return
         else:
-            dlg = wx.MessageDialog(self, "¿Seguro que deseas borrar los items seleccionados?",
-                    'Borrar', wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(self, _("Are you sure that want to delete the selected items?"),
+                    _("Delete?"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
              
             if result == wx.ID_YES:
@@ -227,9 +232,15 @@ class mainWindow(wx.Frame):
                         c = globals.db_savedata.cursor()
                         c.execute("DELETE FROM Games WHERE id = {};".format(GameID))
                         c.execute("DELETE FROM Saves WHERE game_id = {};".format(GameID))
-                        globals.db_savedata.commit()
+                        c.close()
                     except Exception as e:
-                        print("Error: error borrando los datos de la BBDD: {}".format(e))
+                        log.error("Error: there was an error removing data from database: {}".format(e))
+                        dlg = wx.MessageDialog(self, _("There was an error removing data from database."),
+                            _("Error"), wx.YES_NO | wx.ICON_ERROR)
+                        globals.db_savedata.rollback()
+                        break
+                        
+                    globals.db_savedata.commit()
                     self.itemList.DeleteItem(item)
 
                     
@@ -251,11 +262,11 @@ class mainWindow(wx.Frame):
                 toSymlink.append(index)
         
         if len(toSymlink) == 0:
-            wx.MessageBox('Tienes que seleccionar al menos un item de la lista.', 'Aviso', wx.OK | wx.ICON_WARNING)
+            wx.MessageBox(_("You must select at least one item from the list."), _("Notice"), wx.OK | wx.ICON_WARNING)
             return
         else:
-            dlg = wx.MessageDialog(self, "¿Continuar creando enlaces?",
-                    'Borrar', wx.YES_NO | wx.ICON_QUESTION)
+            dlg = wx.MessageDialog(self, _("Do you want to create the symbolic links?"),
+                    _("Continue"), wx.YES_NO | wx.ICON_QUESTION)
             result = dlg.ShowModal()
              
             if result == wx.ID_YES:
@@ -272,18 +283,21 @@ class mainWindow(wx.Frame):
                         dst = folder[0]
                         
                         if not globals.makeSymbolicLink(src, dst):
-                            log.error("Ha ocurrido un error creando el enlace: " +
-                                    "{} -> {}".format(dst, src)
-                                )
-                            dlg = wx.MessageDialog(self, "Ha ocurrido un error creando " +
-                                    "el enlace: {} -> {}".format(dst, src),
-                                    wx.OK | wx.ICON_WARNING
-                                )
+                            log.error(
+                                _("There was an error creating the symbolic link: ") +
+                                "{} -> {}".format(dst, src)
+                            )
+                            dlg = wx.MessageDialog(
+                                self,
+                                _("There was an error creating the symbolic link: ") +
+                                    "{} -> {}".format(dst, src),
+                                wx.OK | wx.ICON_WARNING
+                            )
                             dlg.ShowModal()
                             
                 wx.MessageBox(
-                    "Se ha terminado de crear los enlaces simbólicos.",
-                    "Terminado",
+                    _("Symbolic links created successfully."),
+                    _("Finished"),
                     style=wx.ICON_INFORMATION | wx.OK | wx.STAY_ON_TOP
                 )
  

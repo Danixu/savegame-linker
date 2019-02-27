@@ -1,0 +1,58 @@
+# Savegame Linker - Options.
+# Copyright (C) 2018
+# Daniel Carrasco Marín, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.7\n"
+"POT-Creation-Date: 2019-02-27 23:03+0100\n"
+"PO-Revision-Date: 2019-02-27 23:03+0100\n"
+"Last-Translator: Daniel Carrasco Marín\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Ok"
+msgstr "Aceptar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Log file:"
+msgstr "Fichero log:"
+
+msgid "Log level:"
+msgstr "Nivel de log:"
+
+msgid "CRITICAL"
+msgstr "CRÍTICO"
+
+msgid "ERROR"
+msgstr "ERROR"
+
+msgid "WARNING"
+msgstr "AVISO"
+
+msgid "INFO"
+msgstr "INFO"
+
+msgid "DEBUG"
+msgstr "DEBUG"
+
+msgid "Log files|*.log"
+msgstr "Ficheros log|*.log"
+
+msgid "Open log"
+msgstr "Abrir log"
+
+msgid "Choose a directory:"
+msgstr "Elige una carpeta:"
+
+msgid "The selected directory is already on the list"
+msgstr "La carpeta ya está en la lista"
+
+msgid "Notice"
+msgstr "Aviso"
+
+msgid "You must select at least one item from the list"
+msgstr "Debe seleccionar al menos un elemento de la lista"

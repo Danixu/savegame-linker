@@ -1,0 +1,79 @@
+# Savegame Linker - AddGame.
+# Copyright (C) 2018
+# Daniel Carrasco Marín, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.7\n"
+"POT-Creation-Date: 2019-02-27 23:03+0100\n"
+"PO-Revision-Date: 2019-02-27 23:03+0100\n"
+"Last-Translator: Daniel Carrasco Marín\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Add Game"
+msgstr "Add Game"
+
+msgid "Add custom save"
+msgstr "Add custom save"
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Title:"
+msgstr "Title:"
+
+msgid "Data folder name:"
+msgstr "Data folder name:"
+
+msgid "Folders to add:"
+msgstr "Folders to add:"
+
+msgid "Move folders/files to data folder"
+msgstr "Move folders/files to data folder"
+
+msgid "Create symbolic link to data folder"
+msgstr "Create symbolic link to data folder"
+
+msgid "Generate JSON file with save info"
+msgstr "Generate JSON file with save info"
+
+msgid "Open image"
+msgstr "Open image"
+
+msgid "Images|*.bmp;*.png;*.jpg;*.gif;*.ico"
+msgstr "Images|*.bmp;*.png;*.jpg;*.gif;*.ico"
+
+msgid "Choose a directory:"
+msgstr "Choose a directory:"
+
+msgid "The selected folder is already on the list"
+msgstr "The selected folder is already on the list"
+
+msgid "Notice"
+msgstr "Notice"
+
+msgid "You must select at least one item from the list"
+msgstr "You must select at least one item from the list"
+
+msgid "All field less the icon are mandatory."
+msgstr "All field less the icon are mandatory."
+
+msgid "Error"
+msgstr "Error"
+
+msgid "JSON file saved correctly."
+msgstr "JSON file saved correctly."
+
+msgid "Saved!"
+msgstr "Saved!"
+
+msgid "Save/s added correctly."
+msgstr "Save/s added correctly."
+
+msgid "Finished"
+msgstr "Finished"
