@@ -7,8 +7,16 @@ __version__ = "0.5.1"
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 include_files = ['images', 'audio']
-excludes = ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml", "pkg_resources"]
-packages = ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "PIL", "platform", "playsound", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "win32com", "wx"]
+
+# packages to include/exclude
+includes = {
+    "external": ["PIL", "PIL.IcoImagePlugin"],
+    "zip": ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "platform", "playsound", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "win32com", "wx"]
+}
+excludes = {
+    "external": ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml", "pkg_resources"],
+    "zip": []
+}
 
 setup (
   name = "Savegame Linker",
@@ -17,10 +25,11 @@ setup (
   options = {
     'build_exe': {
       'include_files': include_files,
-      'excludes': excludes,
+      'includes': includes['external'],
+      'excludes': excludes['external'],
       'include_msvcr': True,
-      'zip_include_packages': packages,
-      'zip_exclude_packages': '',
+      'zip_include_packages': includes['zip'],
+      'zip_exclude_packages': excludes['zip'],
       "optimize": 2,
     }
   },
