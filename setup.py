@@ -2,11 +2,16 @@
 import sys, os
 from cx_Freeze import setup, Executable
 
-__version__ = "0.5.1"
+__version__ = "0.5.3"
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-include_files = ['images', 'audio']
+include_files = [
+    'images',
+    'audio',
+    ('lang\es\LC_MESSAGES\globals.mo', 'lang\es\LC_MESSAGES\globals.mo'),
+    ('lang\en\LC_MESSAGES\globals.mo', 'lang\en\LC_MESSAGES\globals.mo'),
+]
 
 # packages to include/exclude
 includes = {
@@ -17,6 +22,17 @@ excludes = {
     "external": ["OpenGL", "email", "distutils", "html", "pydoc_data", "unittest", "http", "xml", "pkg_resources"],
     "zip": []
 }
+
+# find translations and add files
+for root, folders, files in os.walk('lang'):
+    for fName in files:
+        if ".mo" in fName:
+            include_files.append(
+                (
+                    os.path.join(root, fName),
+                    os.path.join(root, fName)
+                )
+            )
 
 setup (
   name = "Savegame Linker",
