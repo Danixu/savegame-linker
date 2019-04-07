@@ -45,7 +45,7 @@ log.debug("Changing log level to {}".format(globals.options['logLevel']))
 log.setLevel(globals.options['logLevel'])
 
 
-es = gettext.translation('mainWindow', localedir='lang', languages=['es'])
+es = gettext.translation('globals', localedir='lang', languages=['es'])
 es.install()
 
 
@@ -70,7 +70,10 @@ class mainWindow(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.exitGUI)
 
         # Changing the icon
-        icon = wx.Icon(os.path.join(globals.dataFolder["images"], 'icons.ico'), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(
+            os.path.join(globals.dataFolder["images"], 'icons.ico'), 
+            wx.BITMAP_TYPE_ICO
+        )
         self.SetIcon(icon)
         
         # Creating panel
@@ -284,16 +287,14 @@ class mainWindow(wx.Frame):
                         
                         if not globals.makeSymbolicLink(src, dst):
                             log.error(
-                                _("There was an error creating the symbolic link: ") +
+                                "There was an error creating the symbolic link: " +
                                 "{} -> {}".format(dst, src)
                             )
-                            dlg = wx.MessageDialog(
-                                self,
+                            wx.MessageBox(
                                 _("There was an error creating the symbolic link: ") +
                                     "{} -> {}".format(dst, src),
-                                wx.OK | wx.ICON_WARNING
+                                style=wx.OK | wx.ICON_WARNING | wx.STAY_ON_TOP
                             )
-                            dlg.ShowModal()
                             
                 wx.MessageBox(
                     _("Symbolic links created successfully."),

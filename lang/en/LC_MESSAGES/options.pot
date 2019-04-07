@@ -56,3 +56,6 @@ msgstr "Notice"
 
 msgid "You must select at least one item from the list"
 msgstr "You must select at least one item from the list"
+
+msgid "The selected directory is already on the list"
+msgstr "The selected directory is already on the list"

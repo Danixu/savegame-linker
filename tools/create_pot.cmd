@@ -3,9 +3,34 @@ FOR /F "tokens=* USEBACKQ" %%F IN (`where python`) DO (
 	SET pythonFolder=%%~dpF
 )
 
-SET LANGS=(en es)
-SET ROOT=%~dp0\..
+SET ROOT=%~dp0..
+SET IGNORE="__init__.py Test_page.py setup.py"
 
+
+for /F "delims=" %%A in ('dir /b /s "%ROOT%\*.py"^|findstr /I /V %IGNORE%') DO (
+	type "%%A" | findstr /C:'_("' >nul
+	if errorlevel 0 (
+		echo "Extrayendo textos de %%A..."
+		python "%pythonFolder%\Tools\i18n\pygettext.py" -d "%%~nA" -o "%ROOT%\lang\%%~nA.pot" "%%A"
+	)
+)
+
+for /F "delims=" %%A in ('dir /b "%ROOT%\lang\*.pot"') DO (
+	for /F "delims=" %%B in ('dir /b /ad "%ROOT%\lang\"') DO (
+		echo "Mezclando %%A en idioma %%B..."
+		if exist "%ROOT%\lang\%%B\LC_MESSAGES\%%A" (
+			"%ROOT%\tools\msgcat.exe" --use-first --no-location "%ROOT%\lang\%%B\LC_MESSAGES\%%A" "%ROOT%\lang\%%A" -o "%ROOT%\lang\%%B\LC_MESSAGES\%%A"
+		) else (
+			"%ROOT%\tools\msgcat.exe" --use-first --no-location "%ROOT%\lang\%%A" -o "%ROOT%\lang\%%B\LC_MESSAGES\%%A"
+		)
+	)
+	del "%ROOT%\lang\%%A"
+)
+
+
+
+pause
+exit
 
 python "%pythonFolder%\Tools\i18n\pygettext.py" -d mainWindow -o "%ROOT%\lang\mainWindow.pot" "%ROOT%\mainWindow.pyw"
 REM python "%pythonFolder%\Tools\i18n\pygettext.py" -d globals -o "%ROOT%\lang\globals.pot" "%ROOT%\globals.py"

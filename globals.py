@@ -79,78 +79,130 @@ def init():
                 wx.FONTWEIGHT_NORMAL, underline=False, faceName="Segoe UI",
                 encoding=wx.FONTENCODING_DEFAULT)
         
-        ## Save folder list database
-        global db_gamedata
-        db_gamedata = sqlite3.connect('gamedata.db')
-        
-        ## Savegames lists
-        global db_savedata
-        db_savedata = sqlite3.connect('savedata.db')
-        c = db_savedata.cursor()
-        
-        # Games table
-        c.execute(
-                "CREATE TABLE IF NOT EXISTS Games (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "detected_id INTEGER DEFAULT NULL, " +
-                "name TEXT UNIQE NOT NULL, " +
-                "folder TEXT NOT NULL, " +
-                "icon BLOB DEFAULT NULL);"
+        try:
+            ## Save folder list database
+            global db_gamedata
+            db_gamedata = sqlite3.connect('gamedata.db')
+            
+            ## Savegames lists
+            global db_savedata
+            db_savedata = sqlite3.connect('savedata.db')
+            c = db_savedata.cursor()
+        except Exception as e:
+            log.error(
+                "There was an error connecting to database:" +
+                " {}".format(e)
             )
-        c.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS games_name " +
-                "ON Games(name);"
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
             )
+            dlg.ShowModal()
+            sys.exit(99)
+        
+        try:
+            # Games table
+            c.execute(
+                    "CREATE TABLE IF NOT EXISTS Games (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "detected_id INTEGER DEFAULT NULL, " +
+                    "name TEXT UNIQE NOT NULL, " +
+                    "folder TEXT NOT NULL, " +
+                    "icon BLOB DEFAULT NULL);"
+                )
+            c.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS games_name " +
+                    "ON Games(name);"
+                )
 
-        # Saves table
-        c.execute(
-                "CREATE TABLE IF NOT EXISTS Saves (" +
-                "game_id INTEGER NOT NULL, " +
-                "source TEXT NOT NULL, " +
-                "destination TEXT NOT NULL);"
-            )
-        c.execute(
-                "CREATE INDEX IF NOT EXISTS saves_game_id " +
-                "ON Saves(game_id);"
-            )
+            # Saves table
+            c.execute(
+                    "CREATE TABLE IF NOT EXISTS Saves (" +
+                    "game_id INTEGER NOT NULL, " +
+                    "source TEXT NOT NULL, " +
+                    "destination TEXT NOT NULL);"
+                )
+            c.execute(
+                    "CREATE INDEX IF NOT EXISTS saves_game_id " +
+                    "ON Saves(game_id);"
+                )
+                
+            # Backups table
+            c.execute(
+                    "CREATE TABLE IF NOT EXISTS Backups (" +
+                    "game_id INTEGER NOT NULL, " +
+                    "filename TEXT NOT NULL);"
+                )
             
-        # Backups table
-        c.execute(
-                "CREATE TABLE IF NOT EXISTS Backups (" +
-                "game_id INTEGER NOT NULL, " +
-                "filename TEXT NOT NULL);"
+            # Options table
+            c.execute(
+                    "CREATE TABLE IF NOT EXISTS Config (" +
+                    "var TEXT UNIQUE NOT NULL, " +
+                    "kind TEXT DEFAULT 'str', " +
+                    "value TEXT NOT NULL);"
+                )
+            c.execute(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS config_var " +
+                    "ON Config(var);"
+                )
+            c.close()
+            db_savedata.commit()
+        except Exception as e:
+            log.error(
+                "There was an error creating required databases in sqlite:" +
+                " {}".format(e)
             )
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            sys.exit(99)
         
-        # Options table
-        c.execute(
-                "CREATE TABLE IF NOT EXISTS Config (" +
-                "var TEXT UNIQUE NOT NULL, " +
-                "kind TEXT DEFAULT 'str', " +
-                "value TEXT NOT NULL);"
+        try:
+            # Replacing options from stored in database:
+            c = db_savedata.cursor()
+            for item in options:
+                query = "SELECT * FROM Config WHERE var = ?;"
+                c.execute(query, (item,))
+                data = c.fetchone()
+                if data:
+                    options[item] = strToValue(data[2], data[1])
+            c.close()
+        except Exception as e:
+            log.error(
+                "There was an error reading the config data from database:" +
+                " {}".format(e)
             )
-        c.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS config_var " +
-                "ON Config(var);"
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
             )
-        c.close()
-        db_savedata.commit()
+            dlg.ShowModal()
+            sys.exit(99)
         
-        # Replacing options from stored in database:
-        c = db_savedata.cursor()
-        for item in options:
-            query = "SELECT * FROM Config WHERE var = ?;"
-            c.execute(query, (item,))
-            data = c.fetchone()
-            if data:
-                options[item] = strToValue(data[2], data[1])
-        c.close()
-         
-        ## Doing startup things ##
-        if not os.path.isdir(fullPath(options['savesFolder'])):
-            os.makedirs(fullPath(options['savesFolder']))
-            
-        if not os.path.isdir(fullPath('gamedata')):
-            os.makedirs(fullPath('gamedata'))
+        try:        
+            ## Doing startup things ##
+            if not os.path.isdir(fullPath(options['savesFolder'])):
+                os.makedirs(fullPath(options['savesFolder']))
+                
+            if not os.path.isdir(fullPath('gamedata')):
+                os.makedirs(fullPath('gamedata'))
+        except Exception as e:
+            log.error(
+                "There was an error creating required folders:" +
+                " {}".format(e)
+            )
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            sys.exit(99)
 
         
 def strToValue(str, kind):
@@ -167,12 +219,26 @@ def strToValue(str, kind):
 
         
 def saveOption(key, value, keyType=None):
-    c = db_savedata.cursor()
-    options[key] = value
-    query = "INSERT OR REPLACE INTO Config VALUES (?,?,?);"
-    c.execute(query, (key, keyType or type(value).__name__, str(value).lower()))
-    c.close()
-    db_savedata.commit()
+    try:
+        c = db_savedata.cursor()
+        options[key] = value
+        query = "INSERT OR REPLACE INTO Config VALUES (?,?,?);"
+        c.execute(query, (key, keyType or type(value).__name__, str(value).lower()))
+        c.close()
+        db_savedata.commit()
+        return True
+    except Exception as e:
+        log.error(
+            "There was an error inserting the config data to database:" +
+            " {}".format(e)
+        )
+        dlg = wx.MessageDialog(
+            None,
+            _("There was an error. Please go to log for more info."),
+            wx.OK | wx.ICON_ERROR
+        )
+        dlg.ShowModal()
+        return False
 
             
 def fullPath(path):
@@ -209,20 +275,32 @@ def windowsVariableToFolder(folder):
 
     
 def remove_transparency(im, bg_colour=(255, 255, 255)):
-    # Only process if image has transparency (http://stackoverflow.com/a/1963146)
-    if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
-        # Need to convert to RGBA if LA format due to a bug in PIL (http://stackoverflow.com/a/1963146)
-        alpha = im.convert('RGBA').split()[-1]
-        # Create a new background image of our matt color.
-        # Must be RGBA because paste requires both images have the same format
-        # (http://stackoverflow.com/a/8720632    and    http://stackoverflow.com/a/9459208)
-        bg = Image.new("RGBA", im.size, bg_colour + (255,))
-        bg.paste(im, mask=alpha)
-        return bg
+    try:
+        # Only process if image has transparency (http://stackoverflow.com/a/1963146)
+        if im.mode in ('RGBA', 'LA') or (im.mode == 'P' and 'transparency' in im.info):
+            # Need to convert to RGBA if LA format due to a bug in PIL (http://stackoverflow.com/a/1963146)
+            alpha = im.convert('RGBA').split()[-1]
+            # Create a new background image of our matt color.
+            # Must be RGBA because paste requires both images have the same format
+            # (http://stackoverflow.com/a/8720632    and    http://stackoverflow.com/a/9459208)
+            bg = Image.new("RGBA", im.size, bg_colour + (255,))
+            bg.paste(im, mask=alpha)
+            return bg
 
-    else:
-        return im
-
+        else:
+            return im
+    except Exception as e:
+        log.error(
+            "There was an error removing the transparency from the image:" +
+            " {}".format(e)
+        )
+        dlg = wx.MessageDialog(
+            None,
+            _("There was an error. Please go to log for more info."),
+            wx.OK | wx.ICON_ERROR
+        )
+        dlg.ShowModal()
+        return False
                 
 def makeSymbolicLink(src, dst):
     log = logging.getLogger("SavegameLinker")
@@ -249,6 +327,13 @@ def makeSymbolicLink(src, dst):
                 newName = "{}-{}".format(src, now)
                 log.debug("Renaming {} to {}".format(src, now))
                 os.rename(src, newName)
+        else:
+            log.debug("Destination folder doesn't exists.")
+            parent_folder = os.path.dirname(src.rstrip("/").rstrip("\\"))
+            log.debug("Parent folder: {}".format(parent_folder))
+            if not os.path.isdir(parent_folder):
+                log.debug("Parent folder doesn't exists, so it will be created")
+                os.makedirs(parent_folder)
 
         #os.symlink(src=folder, dst=dst, target_is_directory=True) # Fails, so I've used subprocess
         # Check if is a symlink. Needs shell=True or will fail
@@ -257,7 +342,9 @@ def makeSymbolicLink(src, dst):
             creationflags=subprocess.CREATE_NO_WINDOW,
             shell=True
         )
-        child.communicate()
+        strdout, stderr = child.communicate()
+        if child.returncode != 0:
+            return False
 
         return True
             
@@ -266,61 +353,113 @@ def makeSymbolicLink(src, dst):
         return False
 
 def imageResize(fName, nWidth=44, nHeight=44, centered=True, color=(255, 255, 255, 255)):
+    log = logging.getLogger("SavegameLinker")
     if not fName == None and os.path.isfile(fName):
         # The file is saved to BytesIO and reopened because
         # if not, some ico files are not resized correctly
-        tmp_data = BytesIO()
-        tmp_image = Image.open(fName)
-        tmp_image.save(tmp_data, "PNG", compress_level = 1)
-        tmp_image.close()
+        try:
+            log.debug("Creating BytesIO data")
+            tmp_data = BytesIO()
+            log.debug("Opening source image file")
+            tmp_image = Image.open(fName)
+            log.debug("Creating temporal data in memory to allow resize")
+            tmp_image.save(tmp_data, "PNG", compress_level = 1)
+            log.debug("Closing the source image")
+            tmp_image.close()
+        except Exception as e:
+            log.error("There was an error opening the image: {}".format(e))
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            return False
         
-        tmp_image = Image.open(tmp_data)
+        try:
+            tmp_image = Image.open(tmp_data)
+        except Exception as e:
+            log.error("There was an error opening the image: {}".format(e))
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            return False
         
-        if tmp_image.size[0] < nWidth and tmp_image.size[1] < nHeight:
-            width, height = tmp_image.size
-        
-            if width > height:
-                factor = nWidth / width
-                width = nWidth
-                height = int(height * factor)
-                
-                # if height%2 > 0:
-                    # height += 1
-                
-                tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+        try:
+            if tmp_image.size[0] < nWidth and tmp_image.size[1] < nHeight:
+                log.debug("Size is smaller than indicated size")
+                width, height = tmp_image.size
+            
+                if width > height:
+                    factor = nWidth / width
+                    width = nWidth
+                    height = int(height * factor)
+                    
+                    # if height%2 > 0:
+                        # height += 1
+                    
+                    log.debug("Resizing image...")
+                    tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+                else:
+                    factor = nHeight / height
+                    width = int(width * factor)
+                    height = nHeight
+                    
+                    # if width%2 > 0:
+                        # height += 1
+                    
+                    log.debug("Resizing image...")
+                    tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+
             else:
-                factor = nHeight / height
-                width = int(width * factor)
-                height = nHeight
-                
-                # if width%2 > 0:
-                    # height += 1
-                
-                tmp_image = tmp_image.resize((width, height), Image.LANCZOS)
+                log.debug("The image is bigger than indicated size...")
+                log.info("Creating thumbnail.")
+                tmp_image.thumbnail((nWidth, nHeight), Image.LANCZOS)
+        except Exception as e:
+            log.error("There was an error resizing the image: {}".format(e))
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            return False
 
-        else:
-            tmp_image.thumbnail((nWidth, nHeight), Image.LANCZOS)
-
-        if centered and tmp_image.size[0] != tmp_image.size[1]:
-            new_image = Image.new("RGBA", (nWidth, nHeight), color)
-            new_image.paste(
-                    tmp_image,
-                    (
-                        int((nWidth-tmp_image.size[0])/2),
-                        int((nHeight-tmp_image.size[1])/2)
+        try:
+            log.debug("Centering image...")
+            if centered and tmp_image.size[0] != tmp_image.size[1]:
+                new_image = Image.new("RGBA", (nWidth, nHeight), color)
+                new_image.paste(
+                        tmp_image,
+                        (
+                            int((nWidth-tmp_image.size[0])/2),
+                            int((nHeight-tmp_image.size[1])/2)
+                        )
                     )
-                )
-            tmp_image.close()
-            icon_data = BytesIO()
-            new_image.save(icon_data, "PNG", optimize=True)
-            new_image.close()
-            tmp_data.close()
-            return icon_data
-        else:
-            icon_data = BytesIO()
-            tmp_image.save(icon_data, "PNG", optimize=True)
-            tmp_image.close()
-            tmp_data.close()
-            return icon_data
+                tmp_image.close()
+                icon_data = BytesIO()
+                new_image.save(icon_data, "PNG", optimize=True)
+                new_image.close()
+                tmp_data.close()
+                return icon_data
+            else:
+                icon_data = BytesIO()
+                tmp_image.save(icon_data, "PNG", optimize=True)
+                tmp_image.close()
+                tmp_data.close()
+                return icon_data
+        except Exception as e:
+            log.error("There was an error centering the image: {}".format(e))
+            dlg = wx.MessageDialog(
+                None,
+                _("There was an error. Please go to log for more info."),
+                wx.OK | wx.ICON_ERROR
+            )
+            dlg.ShowModal()
+            return False
+            
     else:
         return None

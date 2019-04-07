@@ -77,3 +77,9 @@ msgstr "Save/s added correctly."
 
 msgid "Finished"
 msgstr "Finished"
+
+msgid "Data directory name:"
+msgstr ""
+
+msgid "The selected directory is already on the list"
+msgstr ""
