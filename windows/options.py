@@ -6,12 +6,15 @@
 '''
 
 import wx
-from widgets.ShapedButton import ShapedButton
+from widgets import ShapedButton
 import sys
 import os
 import gettext
 import globals
 import logging
+
+### Log Configuration ###
+log = logging.getLogger("MainWindow")
 
 #====================================================================
 class options(wx.Dialog):
@@ -107,7 +110,7 @@ class options(wx.Dialog):
             image_icondown = wx.Image(os.path.join(globals.dataFolder["images"], 'folder_click.png'),
                     wx.BITMAP_TYPE_ANY )
             image_icondisabled = image_iconup.ConvertToDisabled(70)
-            button_icon = ShapedButton(self, 
+            button_icon = ShapedButton.ShapedButton(self, 
                     image_iconup.ConvertToBitmap(), 
                     image_icondown.ConvertToBitmap(), 
                     image_icondisabled.ConvertToBitmap(),

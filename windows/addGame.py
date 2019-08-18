@@ -6,20 +6,20 @@
 '''
 
 import wx
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
-from widgets.ShapedButton import ShapedButton
+from widgets import ShapedButton
+from modules import pathTools, winPathTools, imageResizeWX, imageRemoveTransparecyWX, getResourcePath
 import sys
+import shutil
 import os
 import gettext
 import globals
 import logging
 import json
 import base64
-from PIL import Image
 from sqlite3 import Binary
 
 ### Log Configuration ###
-log = logging.getLogger("SavegameLinker")
+log = logging.getLogger("MainWindow")
 
 #====================================================================
 class addGame(wx.Dialog):
@@ -50,7 +50,7 @@ class addGame(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.exitGUI)
         
         # Cambiamos el icono
-        icon = wx.Icon(os.path.join(globals.dataFolder["images"], 'icons.ico'), wx.BITMAP_TYPE_ICO)
+        icon = wx.Icon(getResourcePath.getResourcePath(globals.dataFolder["images"], 'icons.ico'), wx.BITMAP_TYPE_ICO)
         self.SetIcon(icon)
         
         # Creamos el panel
@@ -138,9 +138,14 @@ class addGame(wx.Dialog):
             self.textBox3.SetBackgroundColour(wx.Colour(255, 150, 150))
             
             ### Icon ###
-            image_iconup = wx.Image(os.path.join(globals.dataFolder["images"], 'no_image_big.png'),
-                     wx.BITMAP_TYPE_ANY )
-            self.iconImage = wx.StaticBitmap(self, -1, image_iconup.ConvertToBitmap(), (361, 6), (95, 95), style=wx.BORDER_THEME)
+            image_icon = wx.Bitmap()
+            image_icon.LoadFile(
+                getResourcePath.getResourcePath(
+                  globals.dataFolder["images"], 
+                  'no_image_big.png'
+                )
+            )
+            self.iconImage = wx.StaticBitmap(self, -1, image_icon, (361, 6), (95, 95), style=wx.BORDER_THEME)
             self.iconImage.Bind(wx.EVT_LEFT_UP, self.SelectIconButton)
             
             ### Grupo Folder List ###
@@ -161,31 +166,51 @@ class addGame(wx.Dialog):
             self.folderList.SetBackgroundColour(wx.Colour(255, 150, 150))
              
             ### Add Button ###
-            image_addup = wx.Image(os.path.join(globals.dataFolder["images"], 'add_up.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_adddown = wx.Image(os.path.join(globals.dataFolder["images"], 'add_down.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_adddisabled = image_addup.ConvertToDisabled(70)
-            button_add = ShapedButton(self, 
-                    image_addup.ConvertToBitmap(), 
-                    image_adddown.ConvertToBitmap(), 
-                    image_adddisabled.ConvertToBitmap(),
-                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
+            button_add_up = wx.Bitmap()
+            button_add_up.LoadFile(
+                getResourcePath.getResourcePath(
+                  globals.dataFolder["images"], 
+                  'add_up.png'
+                )
+            )
+            button_add_down = wx.Bitmap()
+            button_add_down.LoadFile(
+                getResourcePath.getResourcePath(
+                  globals.dataFolder["images"], 
+                  'add_down.png'
+                )
+            )
+            button_add_disabled = button_add_down.ConvertToDisabled()
+            button_add = ShapedButton.ShapedButton(self, 
+                    button_add_up, 
+                    button_add_down, 
+                    button_add_disabled,
+                    audio_click=getResourcePath.getResourcePath(globals.dataFolder["audio"], 'Click1.wav'),
                     pos=(6, 312), size=(36,36)
                 )
             button_add.Bind(wx.EVT_LEFT_UP, self.AddButtonClick)
             
             ### Remove Button ###
-            image_remup = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_up.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_remdown = wx.Image(os.path.join(globals.dataFolder["images"], 'remove_down.png'),
-                    wx.BITMAP_TYPE_ANY )
-            image_remdisabled = image_remup.ConvertToDisabled(70)
-            button_rem = ShapedButton(self, 
-                    image_remup.ConvertToBitmap(), 
-                    image_remdown.ConvertToBitmap(), 
-                    image_remdisabled.ConvertToBitmap(),
-                    audio_click=os.path.join(globals.dataFolder["audio"], 'Click1.wav'),
+            button_rem_up = wx.Bitmap()
+            button_rem_up.LoadFile(
+                getResourcePath.getResourcePath(
+                  globals.dataFolder["images"], 
+                  'remove_up.png'
+                )
+            )
+            button_rem_down = wx.Bitmap()
+            button_rem_down.LoadFile(
+                getResourcePath.getResourcePath(
+                  globals.dataFolder["images"], 
+                  'remove_down.png'
+                )
+            )
+            button_rem_disabled = button_rem_down.ConvertToDisabled()
+            button_rem = ShapedButton.ShapedButton(self, 
+                    button_rem_up, 
+                    button_rem_down, 
+                    button_rem_disabled,
+                    audio_click=getResourcePath.getResourcePath(globals.dataFolder["audio"], 'Click1.wav'),
                     pos=(48, 312), size=(36,36)
                 )
             button_rem.Bind(wx.EVT_LEFT_UP, self.RemButtonClick)
@@ -244,16 +269,10 @@ class addGame(wx.Dialog):
                     return
 
                 self._gameIcon = fileDialog.GetPath()
-                im = Image.open(
-                        globals.imageResize(self._gameIcon, 95, 95)
-                     )
-                im2 = globals.remove_transparency(im).convert("RGB")
-                im.close()
-                
-                # Create an wx.Image from image
-                width, height = im2.size
-                image = wx.Image(width, height, im2.tobytes())
-                self.iconImage.SetBitmap(image.ConvertToBitmap())
+                im = imageResizeWX.imageResizeWX(self._gameIcon, 95, 95, out_format = wx.Image)
+                im = imageRemoveTransparecyWX.remove_transparency(im)
+
+                self.iconImage.SetBitmap(im.ConvertToBitmap())
                 self.iconImage.Refresh()
                 globals.saveOption(
                     'lastDirIcon',
@@ -368,12 +387,12 @@ class addGame(wx.Dialog):
             # Create saves folder
             if not os.path.isdir(
                     os.path.join(
-                        globals.fullPath(globals.options['savesFolder']),
+                        pathTools.fullPath(globals.options['savesFolder']),
                         folderName
                     ) 
                 ) and not self.mainWindow.genJson:
                 os.makedirs(os.path.join(
-                    globals.fullPath(globals.options['savesFolder']),
+                    pathTools.fullPath(globals.options['savesFolder']),
                     folderName
                 ))
             
@@ -382,23 +401,23 @@ class addGame(wx.Dialog):
             foldersData = {}
             for folder in folders:
                 dst = os.path.join(
-                        globals.fullPath(globals.options['savesFolder']),
+                        pathTools.fullPath(globals.options['savesFolder']),
                         folderName,
                         "{0:03d}".format(actual)
                     )
                     
                 foldersData.update({
-                        folder: globals.relativePath(dst)
+                        folder: pathTools.relativePath(dst)
                     })
                 
                 actual+=1
             
-            icon_data = globals.imageResize(self._gameIcon)
+            icon_data = imageResizeWX.imageResizeWX(self._gameIcon)
             
             # Generating Json
             if self.mainWindow.genJson or generateJson:
                 jsonFile = "{}\\{}.json".format(
-                    globals.fullPath('gamedata'),
+                    pathTools.fullPath('gamedata'),
                     title
                 )
                 iconBase64 = ""
@@ -442,20 +461,21 @@ class addGame(wx.Dialog):
                 
                 for src, dst in foldersData.items():
                     log.debug("INSERT INTO Saves (game_id, source, destination) VALUES " +
-                        "({}, {}, {});".format(game_id, dst, globals.folderToWindowsVariable(src))
+                        "({}, {}, {});".format(game_id, dst, winPathTools.folderToWindowsVariable(src))
                     )
                     c.execute(
                         "INSERT INTO Saves (game_id, source, destination) VALUES " +
-                        "(?, ?, ?);", (game_id, dst, globals.folderToWindowsVariable(src))
+                        "(?, ?, ?);", (game_id, dst, winPathTools.folderToWindowsVariable(src))
                     )
                 c.close()
                 
                 # If move files and create symlink are checked, then do it
                 for src, dst in foldersData.items():
                     if moveFiles:
-                        os.rename(src, dst)
+                        shutil.move(src, dst)
+                        #os.rename(src, dst) # Falla a veces
                         if createSymbolic:
-                            globals.makeSymbolicLink(src, dst)
+                            winPathTools.makeSymbolicLink(src, dst)
                     else:
                         os.makedirs(dst)
 
@@ -522,7 +542,7 @@ class addGame(wx.Dialog):
                 # We verify if output folder exists
                 if len(textBoxText) > 0:
                     fName = os.path.join(
-                        globals.fullPath(globals.options['savesFolder']),
+                        pathTools.fullPath(globals.options['savesFolder']),
                         textBoxText
                     )
                     if self.mainWindow.genJson or not os.path.isdir(fName):

@@ -15,7 +15,7 @@ include_files = [
 
 # packages to include/exclude
 includes = {
-    "external": ["PIL", "PIL.IcoImagePlugin"],
+    "external": [],
     "zip": ["base64", "collections", "ctypes", "encodings", "importlib", "io", "json", "logging", "platform", "playsound", "sqlite3", "subprocess", "sys", "urllib", "widgets", "windows", "win32com", "wx"]
 }
 excludes = {
@@ -51,7 +51,7 @@ setup (
   },
   executables = [
     Executable(
-      "mainWindow.pyw",
+      "mainWindow.py",
       base="Win32GUI",
       icon="images/icons.ico",
     )
