@@ -1,4 +1,5 @@
-*.txt
+﻿*.txt
+!license.txt
 test*
 **/test*
 savedata.db
